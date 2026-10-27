@@ -142,6 +142,22 @@ input[type=range]{width:70px;accent-color:var(--accent)}
 .hide-tray .tab-tray{bottom:env(safe-area-inset-bottom,0px)}
 .hide-tray .tab-tray svg{transform:rotate(90deg)}
 
+.cover.faded{opacity:.45}
+.refwin{position:absolute;z-index:7;right:calc(12px + env(safe-area-inset-right,0px));top:calc(70px + env(safe-area-inset-top,0px));width:340px;height:300px;min-width:200px;min-height:170px;max-width:calc(100% - 24px);max-height:calc(100% - 100px);display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 14px 40px var(--shadow);overflow:hidden}
+.ref-bar{display:flex;align-items:center;gap:2px;padding:4px 4px 4px 8px;border-bottom:1px solid var(--line);cursor:grab;touch-action:none;flex:none}
+.ref-bar .grip{width:18px;height:18px;color:var(--muted)}
+.ref-title{font-weight:800;font-size:13.5px;margin-right:auto;padding-left:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rb{width:38px;height:38px;border-radius:10px;border:none;background:transparent;display:grid;place-items:center;color:var(--ink);flex:none}
+.rb svg{width:20px;height:20px}
+.rb.go{width:auto;padding:0 12px;background:var(--accent);color:var(--accent-ink);font-weight:800;font-size:13px;height:34px}
+.ref-link{display:flex;gap:6px;padding:6px 8px;border-bottom:1px solid var(--line);flex:none}
+.ref-link input{flex:1;min-width:0;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:0 10px;font:inherit;font-size:14px;-webkit-user-select:text;user-select:text}
+.ref-body{flex:1;min-height:0;position:relative;background:#fff;display:grid;place-items:center;overflow:hidden;touch-action:none}
+.ref-body img{width:100%;height:100%;object-fit:contain;display:block;transform-origin:0 0}
+.ref-body.drop{outline:3px dashed var(--accent);outline-offset:-6px}
+.ref-empty{color:#5B6183;font-size:13.5px;font-weight:700;text-align:center;padding:16px;line-height:1.45;max-width:30ch}
+.ref-size{position:absolute;right:0;bottom:0;width:28px;height:28px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 55%,var(--muted) 55%,var(--muted) 62%,transparent 62%,transparent 72%,var(--muted) 72%,var(--muted) 79%,transparent 79%)}
+#refBtn[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 15%,transparent)}
 .progress{position:absolute;z-index:4;right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--glass);border:1px solid var(--line);border-radius:14px;padding:8px 12px;font-weight:800;font-size:13px;box-shadow:0 6px 18px var(--shadow)}
 
 /* sheets */
@@ -225,6 +241,7 @@ input[type=range]{width:70px;accent-color:var(--accent)}
     <button class="pill" id="fitBtn" aria-label="Fit page to screen"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="7" width="14" height="10" rx="1.5"/><path d="M2 4h3M19 4h3M2 20h3M19 20h3"/></svg></button>
     <span class="vsep"></span>
     <button class="pill" id="clearBtn" aria-label="Start over"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
+    <button class="pill" id="refBtn" aria-label="Show or hide the reference picture" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/></svg></button>
     <button class="pill" id="fullBtn" aria-label="Full screen"><svg class="i" viewBox="0 0 24 24" id="fullIco"><path d="M3 8V3h5M21 8V3h-5M3 16v5h5M21 16v5h-5"/></svg></button>
     <button class="pill primary" id="saveBtn" aria-label="Save picture"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg></button>
   </div>
@@ -238,6 +255,22 @@ input[type=range]{width:70px;accent-color:var(--accent)}
     <label class="custom" id="customWrap" title="Pick any colour"><input type="color" id="customColor" value="#ff7a59" aria-label="Pick any colour"><b></b></label></div>
   <button class="tab tab-tray" id="tabTray" aria-label="Hide or show colours"><svg class="i" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
   <div class="progress" id="progress" hidden></div>
+  <section class="refwin" id="refwin" hidden aria-label="Reference picture">
+    <div class="ref-bar" id="refBar">
+      <svg class="i grip" viewBox="0 0 24 24"><circle cx="9" cy="7" r="1"/><circle cx="15" cy="7" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="17" r="1"/><circle cx="15" cy="17" r="1"/></svg>
+      <span class="ref-title" id="refTitle">Reference</span>
+      <button class="rb" id="refAdd" aria-label="Add a photo"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      <button class="rb" id="refLinkBtn" aria-label="Use a picture link"><svg class="i" viewBox="0 0 24 24"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></svg></button>
+      <button class="rb" id="refClose" aria-label="Hide reference"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <form class="ref-link" id="refLink" hidden><input id="refUrl" type="url" inputmode="url" placeholder="Paste a picture link" aria-label="Picture link"><button class="rb go" type="submit">Show</button></form>
+    <div class="ref-body" id="refBody">
+      <img id="refImg" alt="Reference picture" hidden>
+      <div class="ref-empty" id="refEmpty">Add a photo with <b>+</b>, paste a picture, or drag one in from Safari.</div>
+    </div>
+    <div class="ref-size" id="refSize" aria-hidden="true"></div>
+  </section>
+  <input type="file" id="refFile" accept="image/*" hidden>
 </div>
 
 <div class="overlay" id="saveSheet" hidden role="dialog" aria-modal="true" aria-labelledby="saveTitle">
@@ -251,7 +284,7 @@ input[type=range]{width:70px;accent-color:var(--accent)}
 <div class="toast" id="toast" hidden></div>
 
 <script>
-const CATS = [{"id":"animals","name":"Animals","pages":[{"id":"animals-01","t":"Splashing Elephant"},{"id":"animals-02","t":"Lion Family"},{"id":"animals-03","t":"Bamboo Panda"},{"id":"animals-04","t":"Giraffe & Baby"},{"id":"animals-05","t":"Jungle Monkey"},{"id":"animals-06","t":"Koala"},{"id":"animals-07","t":"Kangaroo & Joey"},{"id":"animals-08","t":"Sleepy Fox"},{"id":"animals-09","t":"Polar Bears"},{"id":"animals-10","t":"Night Owl"}]},{"id":"princesses","name":"Fairy Tale Princesses","pages":[{"id":"princesses-01","t":"Rose Garden Princess"},{"id":"princesses-02","t":"Tower Reader"},{"id":"princesses-03","t":"Forest Tea Party"},{"id":"princesses-04","t":"Enchanted Ride"},{"id":"princesses-05","t":"Ballroom Dance"},{"id":"princesses-06","t":"Flower Swing"},{"id":"princesses-07","t":"Frog by the Fountain"},{"id":"princesses-08","t":"Snowy Courtyard"},{"id":"princesses-09","t":"Magic Wand & Dragon"},{"id":"princesses-10","t":"Swan Lake Boat"}]},{"id":"cartoon","name":"Cartoon Friends","pages":[{"id":"cartoon-01","t":"Bunny & Bear Picnic"},{"id":"cartoon-02","t":"Skateboard Cat"},{"id":"cartoon-03","t":"Firefighter Bear"},{"id":"cartoon-04","t":"Skating Penguin"},{"id":"cartoon-05","t":"Bubble Monster"},{"id":"cartoon-06","t":"Hamster Racer"},{"id":"cartoon-07","t":"Guitar Frog"},{"id":"cartoon-08","t":"Owl Teacher"},{"id":"cartoon-09","t":"Baking Mice"},{"id":"cartoon-10","t":"Camping Raccoon"}]},{"id":"vehicles","name":"Vehicles","pages":[{"id":"vehicles-01","t":"Fire Truck"},{"id":"vehicles-02","t":"Steam Train"},{"id":"vehicles-03","t":"Monster Truck"},{"id":"vehicles-04","t":"Police Patrol"},{"id":"vehicles-05","t":"Digger & Dump Truck"},{"id":"vehicles-06","t":"Balloon Festival"},{"id":"vehicles-07","t":"Race Car"},{"id":"vehicles-08","t":"Pirate Ship"},{"id":"vehicles-09","t":"Jumbo Jet"},{"id":"vehicles-10","t":"Hay Tractor"}]},{"id":"flowers","name":"Flowers & Plants","pages":[{"id":"flowers-01","t":"Flower Bouquet"},{"id":"flowers-02","t":"Sunflower Field"},{"id":"flowers-03","t":"Tulips & Snail"},{"id":"flowers-04","t":"Cactus Garden"},{"id":"flowers-05","t":"Lotus Pond"},{"id":"flowers-06","t":"Blossom Tree Swing"},{"id":"flowers-07","t":"Flower Wreath"},{"id":"flowers-08","t":"Mushroom Garden"},{"id":"flowers-09","t":"Tropical Flowers"},{"id":"flowers-10","t":"Window Box"}]},{"id":"bible","name":"Bible Stories","pages":[{"id":"bible-01","t":"Noah's Ark"},{"id":"bible-02","t":"Baby Moses"},{"id":"bible-03","t":"David the Shepherd"},{"id":"bible-04","t":"Daniel & the Lions"},{"id":"bible-05","t":"Jonah & the Whale"},{"id":"bible-06","t":"The Nativity"},{"id":"bible-07","t":"Loaves & Fishes"},{"id":"bible-08","t":"Calming the Storm"},{"id":"bible-09","t":"The Good Shepherd"},{"id":"bible-10","t":"Garden of Eden"}]},{"id":"patterns","name":"Intricate Patterns","pages":[{"id":"patterns-01","t":"Paisley Mandala"},{"id":"patterns-02","t":"Star Mandala"},{"id":"patterns-03","t":"Pattern Owl"},{"id":"patterns-04","t":"Lace Butterfly"},{"id":"patterns-05","t":"Heart Kaleidoscope"},{"id":"patterns-06","t":"Celtic Knot"},{"id":"patterns-07","t":"Paisley Garden"},{"id":"patterns-08","t":"Pattern Elephant"},{"id":"patterns-09","t":"Star Tiles"},{"id":"patterns-10","t":"Peacock Feathers"}]},{"id":"numbers","name":"Colour by Number","pages":[{"id":"numbers-01","t":"Sunny House"},{"id":"numbers-02","t":"Stripy Fish"},{"id":"numbers-03","t":"Hot Air Balloon"},{"id":"numbers-04","t":"Rainbow"},{"id":"numbers-05","t":"Cupcake"},{"id":"numbers-06","t":"Sailboat"},{"id":"numbers-07","t":"Ladybird"},{"id":"numbers-08","t":"Rocket"},{"id":"numbers-09","t":"Turtle"},{"id":"numbers-10","t":"Butterfly"}]},{"id":"dinosaurs","name":"Dinosaurs","pages":[{"id":"dinosaurs-01","t":"T-Rex & Volcano"},{"id":"dinosaurs-02","t":"Brachiosaurus"},{"id":"dinosaurs-03","t":"Triceratops Family"},{"id":"dinosaurs-04","t":"Stegosaurus"},{"id":"dinosaurs-05","t":"Hatching Dinos"},{"id":"dinosaurs-06","t":"Pterodactyl Falls"},{"id":"dinosaurs-07","t":"Ankylosaurus"},{"id":"dinosaurs-08","t":"Dino Fossil Dig"},{"id":"dinosaurs-09","t":"Spinosaurus Swamp"},{"id":"dinosaurs-10","t":"Dino Waterhole"}]},{"id":"sea","name":"Under the Sea","pages":[{"id":"sea-01","t":"Coral Reef"},{"id":"sea-02","t":"Octopus Treasure"},{"id":"sea-03","t":"Little Mermaid Rock"},{"id":"sea-04","t":"Jumping Dolphins"},{"id":"sea-05","t":"Seahorse Family"},{"id":"sea-06","t":"Mother & Baby Whale"},{"id":"sea-07","t":"Sunken Ship"},{"id":"sea-08","t":"Jellyfish & Starfish"},{"id":"sea-09","t":"Smiley Shark"},{"id":"sea-10","t":"Crab & Shells"}]},{"id":"space","name":"Space","pages":[{"id":"space-01","t":"Floating Astronaut"},{"id":"space-02","t":"Blast Off"},{"id":"space-03","t":"Moon Rover"},{"id":"space-04","t":"Friendly Alien"},{"id":"space-05","t":"Solar System"},{"id":"space-06","t":"Moon Landing"},{"id":"space-07","t":"Space Station"},{"id":"space-08","t":"Robot Astronaut"},{"id":"space-09","t":"Galaxy & Comets"},{"id":"space-10","t":"Cardboard Rocket"}]},{"id":"unicorns","name":"Unicorns & Fairies","pages":[{"id":"unicorns-01","t":"Rainbow Unicorn"},{"id":"unicorns-02","t":"Mushroom Fairy"},{"id":"unicorns-03","t":"Sleepy Baby Unicorn"},{"id":"unicorns-04","t":"Stump Fairy House"},{"id":"unicorns-05","t":"Pegasus"},{"id":"unicorns-06","t":"Unicorn Party"},{"id":"unicorns-07","t":"Watering Fairy"},{"id":"unicorns-08","t":"Forest Stream Unicorn"},{"id":"unicorns-09","t":"Dragonfly Rider"},{"id":"unicorns-10","t":"Moonlight Unicorn"}]},{"id":"dragons","name":"Dragons & Castles","pages":[{"id":"dragons-01","t":"Tower Dragon"},{"id":"dragons-02","t":"Knight & Dragon Picnic"},{"id":"dragons-03","t":"Medieval Castle"},{"id":"dragons-04","t":"Baby Dragon Hatching"},{"id":"dragons-05","t":"Dragon over the Village"},{"id":"dragons-06","t":"Wizard Tower"},{"id":"dragons-07","t":"Dragon Treasure"},{"id":"dragons-08","t":"Knight on Horseback"},{"id":"dragons-09","t":"Marshmallow Dragon"},{"id":"dragons-10","t":"Hilltop Castle"}]},{"id":"farm","name":"Farm","pages":[{"id":"farm-01","t":"Farmyard"},{"id":"farm-02","t":"Farmer on Tractor"},{"id":"farm-03","t":"Mother Hen & Chicks"},{"id":"farm-04","t":"Muddy Pig"},{"id":"farm-05","t":"Sheep & Windmill"},{"id":"farm-06","t":"Horse & Foal"},{"id":"farm-07","t":"Veggie Patch"},{"id":"farm-08","t":"Milking Time"},{"id":"farm-09","t":"Duck Pond"},{"id":"farm-10","t":"Goat & Farm Dog"}]},{"id":"pets","name":"Pets","pages":[{"id":"pets-01","t":"Backyard Puppy"},{"id":"pets-02","t":"Yarn Kitten"},{"id":"pets-03","t":"Carrot Bunny"},{"id":"pets-04","t":"Goldfish Bowl"},{"id":"pets-05","t":"Hamster Wheel"},{"id":"pets-06","t":"Parrot"},{"id":"pets-07","t":"Best Friends"},{"id":"pets-08","t":"Guinea Pig Family"},{"id":"pets-09","t":"Bubble Bath Puppy"},{"id":"pets-10","t":"Sleepy Cat"}]},{"id":"bugs","name":"Bugs & Butterflies","pages":[{"id":"bugs-01","t":"Butterfly"},{"id":"bugs-02","t":"Ladybird"},{"id":"bugs-03","t":"Bee Hive"},{"id":"bugs-04","t":"Hungry Caterpillar"},{"id":"bugs-05","t":"Garden Snail"},{"id":"bugs-06","t":"Dragonfly"},{"id":"bugs-07","t":"Ant Tunnels"},{"id":"bugs-08","t":"Spider Web"},{"id":"bugs-09","t":"Firefly Jar"},{"id":"bugs-10","t":"Grasshopper"}]},{"id":"food","name":"Food & Treats","pages":[{"id":"food-01","t":"Ice Cream Sundae"},{"id":"food-02","t":"Pancake Stack"},{"id":"food-03","t":"Birthday Cake"},{"id":"food-04","t":"Pizza"},{"id":"food-05","t":"Fruit Basket"},{"id":"food-06","t":"Cupcake Stand"},{"id":"food-07","t":"Burger Buddies"},{"id":"food-08","t":"Lolly Shop"},{"id":"food-09","t":"Picnic Basket"},{"id":"food-10","t":"Gingerbread House"}]},{"id":"heroes","name":"Robots & Superheroes","pages":[{"id":"heroes-01","t":"Flying Hero"},{"id":"heroes-02","t":"Helper Robot"},{"id":"heroes-03","t":"Super Dog"},{"id":"heroes-04","t":"Robot Workshop"},{"id":"heroes-05","t":"Super Strong Girl"},{"id":"heroes-06","t":"Hero Team"},{"id":"heroes-07","t":"Gardening Robot"},{"id":"heroes-08","t":"Soccer Robot"},{"id":"heroes-09","t":"Super Cat"},{"id":"heroes-10","t":"Robot Dog"}]},{"id":"holidays","name":"Holidays & Seasons","pages":[{"id":"holidays-01","t":"Christmas Tree"},{"id":"holidays-02","t":"Santa\u2019s Sleigh"},{"id":"holidays-03","t":"Easter Bunny"},{"id":"holidays-04","t":"Pumpkin Patch"},{"id":"holidays-05","t":"Snowman"},{"id":"holidays-06","t":"Beach Day"},{"id":"holidays-07","t":"Rainy Spring"},{"id":"holidays-08","t":"Kite Day"},{"id":"holidays-09","t":"Birthday Party"},{"id":"holidays-10","t":"Gingerbread Baking"}]},{"id":"sports","name":"Sports & Play","pages":[{"id":"sports-01","t":"Soccer in the Park"},{"id":"sports-02","t":"Basketball"},{"id":"sports-03","t":"Playground"},{"id":"sports-04","t":"Surfing"},{"id":"sports-05","t":"Backyard Cricket"},{"id":"sports-06","t":"Ballerina"},{"id":"sports-07","t":"Bike Ride"},{"id":"sports-08","t":"Pool Party"},{"id":"sports-09","t":"Tennis"},{"id":"sports-10","t":"Ice Skating"}]}];
+const CATS = [{"id":"draw","name":"How to Draw","pages":[{"id":"draw-01","t":"Hopping Kangaroo","guide":"guides/draw-01.png","th":"thumbs/draw-0.jpg","ti":0,"tn":10},{"id":"draw-02","t":"Bamboo Panda","guide":"guides/draw-02.png","th":"thumbs/draw-0.jpg","ti":1,"tn":10},{"id":"draw-03","t":"Koala on a Branch","guide":"guides/draw-03.png","th":"thumbs/draw-0.jpg","ti":2,"tn":10},{"id":"draw-04","t":"Roaring Lion","guide":"guides/draw-04.png","th":"thumbs/draw-0.jpg","ti":3,"tn":10},{"id":"draw-05","t":"Walking Elephant","guide":"guides/draw-05.png","th":"thumbs/draw-0.jpg","ti":4,"tn":10},{"id":"draw-06","t":"Drinking Giraffe","guide":"guides/draw-06.png","th":"thumbs/draw-0.jpg","ti":5,"tn":10},{"id":"draw-07","t":"Waddling Penguin","guide":"guides/draw-07.png","th":"thumbs/draw-0.jpg","ti":6,"tn":10},{"id":"draw-08","t":"Standing Polar Bear","guide":"guides/draw-08.png","th":"thumbs/draw-0.jpg","ti":7,"tn":10},{"id":"draw-09","t":"Pouncing Tiger","guide":"guides/draw-09.png","th":"thumbs/draw-0.jpg","ti":8,"tn":10},{"id":"draw-10","t":"Hanging Sloth","guide":"guides/draw-10.png","th":"thumbs/draw-0.jpg","ti":9,"tn":10},{"id":"draw-11","t":"Toucan","guide":"guides/draw-11.png","th":"thumbs/draw-1.jpg","ti":0,"tn":10},{"id":"draw-12","t":"Flamingo","guide":"guides/draw-12.png","th":"thumbs/draw-1.jpg","ti":1,"tn":10},{"id":"draw-13","t":"Camel","guide":"guides/draw-13.png","th":"thumbs/draw-1.jpg","ti":2,"tn":10},{"id":"draw-14","t":"Llama","guide":"guides/draw-14.png","th":"thumbs/draw-1.jpg","ti":3,"tn":10},{"id":"draw-15","t":"Leaping Snow Leopard","guide":"guides/draw-15.png","th":"thumbs/draw-1.jpg","ti":4,"tn":10},{"id":"draw-16","t":"Sleepy Red Panda","guide":"guides/draw-16.png","th":"thumbs/draw-1.jpg","ti":5,"tn":10},{"id":"draw-17","t":"Platypus","guide":"guides/draw-17.png","th":"thumbs/draw-1.jpg","ti":6,"tn":10},{"id":"draw-18","t":"Wombat","guide":"guides/draw-18.png","th":"thumbs/draw-1.jpg","ti":7,"tn":10},{"id":"draw-19","t":"Kookaburra","guide":"guides/draw-19.png","th":"thumbs/draw-1.jpg","ti":8,"tn":10},{"id":"draw-20","t":"Yawning Hippo","guide":"guides/draw-20.png","th":"thumbs/draw-1.jpg","ti":9,"tn":10},{"id":"draw-21","t":"Running Zebra","guide":"guides/draw-21.png","th":"thumbs/draw-2.jpg","ti":0,"tn":10},{"id":"draw-22","t":"Sprinting Cheetah","guide":"guides/draw-22.png","th":"thumbs/draw-2.jpg","ti":1,"tn":10},{"id":"draw-23","t":"Gorilla","guide":"guides/draw-23.png","th":"thumbs/draw-2.jpg","ti":2,"tn":10},{"id":"draw-24","t":"Meerkat","guide":"guides/draw-24.png","th":"thumbs/draw-2.jpg","ti":3,"tn":10},{"id":"draw-25","t":"Flying Eagle","guide":"guides/draw-25.png","th":"thumbs/draw-2.jpg","ti":4,"tn":10},{"id":"draw-26","t":"Bear Catching a Fish","guide":"guides/draw-26.png","th":"thumbs/draw-2.jpg","ti":5,"tn":10},{"id":"draw-27","t":"Moose","guide":"guides/draw-27.png","th":"thumbs/draw-2.jpg","ti":6,"tn":10},{"id":"draw-28","t":"Raccoon","guide":"guides/draw-28.png","th":"thumbs/draw-2.jpg","ti":7,"tn":10},{"id":"draw-29","t":"Bison","guide":"guides/draw-29.png","th":"thumbs/draw-2.jpg","ti":8,"tn":10},{"id":"draw-30","t":"Jaguar on a Branch","guide":"guides/draw-30.png","th":"thumbs/draw-2.jpg","ti":9,"tn":10},{"id":"draw-31","t":"Sea Turtle","guide":"guides/draw-31.png","th":"thumbs/draw-3.jpg","ti":0,"tn":10},{"id":"draw-32","t":"Jumping Whale","guide":"guides/draw-32.png","th":"thumbs/draw-3.jpg","ti":1,"tn":10},{"id":"draw-33","t":"Swinging Orangutan","guide":"guides/draw-33.png","th":"thumbs/draw-3.jpg","ti":2,"tn":10},{"id":"draw-34","t":"Snow Monkey","guide":"guides/draw-34.png","th":"thumbs/draw-3.jpg","ti":3,"tn":10},{"id":"draw-35","t":"Dancing Crane","guide":"guides/draw-35.png","th":"thumbs/draw-3.jpg","ti":4,"tn":10},{"id":"draw-36","t":"Reindeer","guide":"guides/draw-36.png","th":"thumbs/draw-3.jpg","ti":5,"tn":10},{"id":"draw-37","t":"Hedgehog","guide":"guides/draw-37.png","th":"thumbs/draw-3.jpg","ti":6,"tn":10},{"id":"draw-38","t":"Sitting Fox","guide":"guides/draw-38.png","th":"thumbs/draw-3.jpg","ti":7,"tn":10},{"id":"draw-39","t":"Kangaroo in the Outback","guide":"guides/draw-39.png","th":"thumbs/draw-3.jpg","ti":8,"tn":10},{"id":"draw-40","t":"Elephants on the Savanna","guide":"guides/draw-40.png","th":"thumbs/draw-3.jpg","ti":9,"tn":10},{"id":"draw-41","t":"Giraffe and Tree","guide":"guides/draw-41.png","th":"thumbs/draw-4.jpg","ti":0,"tn":10},{"id":"draw-42","t":"Koala in a Gum Tree","guide":"guides/draw-42.png","th":"thumbs/draw-4.jpg","ti":1,"tn":10},{"id":"draw-43","t":"Penguins on Icebergs","guide":"guides/draw-43.png","th":"thumbs/draw-4.jpg","ti":2,"tn":10},{"id":"draw-44","t":"Bear in the Forest","guide":"guides/draw-44.png","th":"thumbs/draw-4.jpg","ti":3,"tn":10},{"id":"draw-45","t":"Monkey in the Jungle","guide":"guides/draw-45.png","th":"thumbs/draw-4.jpg","ti":4,"tn":10},{"id":"draw-46","t":"Deer in a Meadow","guide":"guides/draw-46.png","th":"thumbs/draw-4.jpg","ti":5,"tn":10},{"id":"draw-47","t":"Camel at the Oasis","guide":"guides/draw-47.png","th":"thumbs/draw-4.jpg","ti":6,"tn":10},{"id":"draw-48","t":"Panda by the Stream","guide":"guides/draw-48.png","th":"thumbs/draw-4.jpg","ti":7,"tn":10},{"id":"draw-49","t":"Owl at Night","guide":"guides/draw-49.png","th":"thumbs/draw-4.jpg","ti":8,"tn":10},{"id":"draw-50","t":"Turtle on the Beach","guide":"guides/draw-50.png","th":"thumbs/draw-4.jpg","ti":9,"tn":10}]},{"id":"trace","name":"Trace It","pages":[{"id":"trace-01","t":"Sunny House","src":"pages/numbers-01.png","th":"thumbs/numbers.jpg","ti":0,"tn":10},{"id":"trace-02","t":"Stripy Fish","src":"pages/numbers-02.png","th":"thumbs/numbers.jpg","ti":1,"tn":10},{"id":"trace-03","t":"Hot Air Balloon","src":"pages/numbers-03.png","th":"thumbs/numbers.jpg","ti":2,"tn":10},{"id":"trace-04","t":"Rainbow","src":"pages/numbers-04.png","th":"thumbs/numbers.jpg","ti":3,"tn":10},{"id":"trace-05","t":"Cupcake","src":"pages/numbers-05.png","th":"thumbs/numbers.jpg","ti":4,"tn":10},{"id":"trace-06","t":"Sailboat","src":"pages/numbers-06.png","th":"thumbs/numbers.jpg","ti":5,"tn":10},{"id":"trace-07","t":"Ladybird","src":"pages/numbers-07.png","th":"thumbs/numbers.jpg","ti":6,"tn":10},{"id":"trace-08","t":"Rocket","src":"pages/numbers-08.png","th":"thumbs/numbers.jpg","ti":7,"tn":10},{"id":"trace-09","t":"Turtle","src":"pages/numbers-09.png","th":"thumbs/numbers.jpg","ti":8,"tn":10},{"id":"trace-10","t":"Butterfly","src":"pages/numbers-10.png","th":"thumbs/numbers.jpg","ti":9,"tn":10},{"id":"trace-11","t":"Bamboo Panda","src":"pages/animals-03.png","th":"thumbs/animals.jpg","ti":2,"tn":10},{"id":"trace-12","t":"Jungle Monkey","src":"pages/animals-05.png","th":"thumbs/animals.jpg","ti":4,"tn":10},{"id":"trace-13","t":"Koala","src":"pages/animals-06.png","th":"thumbs/animals.jpg","ti":5,"tn":10},{"id":"trace-14","t":"Night Owl","src":"pages/animals-10.png","th":"thumbs/animals.jpg","ti":9,"tn":10},{"id":"trace-15","t":"Backyard Puppy","src":"pages/pets-01.png","th":"thumbs/pets.jpg","ti":0,"tn":10},{"id":"trace-16","t":"Yarn Kitten","src":"pages/pets-02.png","th":"thumbs/pets.jpg","ti":1,"tn":10},{"id":"trace-17","t":"Carrot Bunny","src":"pages/pets-03.png","th":"thumbs/pets.jpg","ti":2,"tn":10},{"id":"trace-18","t":"Goldfish Bowl","src":"pages/pets-04.png","th":"thumbs/pets.jpg","ti":3,"tn":10},{"id":"trace-19","t":"Parrot","src":"pages/pets-06.png","th":"thumbs/pets.jpg","ti":5,"tn":10},{"id":"trace-20","t":"Best Friends","src":"pages/pets-07.png","th":"thumbs/pets.jpg","ti":6,"tn":10},{"id":"trace-21","t":"Butterfly","src":"pages/bugs-01.png","th":"thumbs/bugs.jpg","ti":0,"tn":10},{"id":"trace-22","t":"Ladybird","src":"pages/bugs-02.png","th":"thumbs/bugs.jpg","ti":1,"tn":10},{"id":"trace-23","t":"Garden Snail","src":"pages/bugs-05.png","th":"thumbs/bugs.jpg","ti":4,"tn":10},{"id":"trace-24","t":"Grasshopper","src":"pages/bugs-10.png","th":"thumbs/bugs.jpg","ti":9,"tn":10},{"id":"trace-25","t":"Ice Cream Sundae","src":"pages/food-01.png","th":"thumbs/food.jpg","ti":0,"tn":10},{"id":"trace-26","t":"Birthday Cake","src":"pages/food-03.png","th":"thumbs/food.jpg","ti":2,"tn":10},{"id":"trace-27","t":"Cupcake Stand","src":"pages/food-06.png","th":"thumbs/food.jpg","ti":5,"tn":10},{"id":"trace-28","t":"Burger Buddies","src":"pages/food-07.png","th":"thumbs/food.jpg","ti":6,"tn":10},{"id":"trace-29","t":"Muddy Pig","src":"pages/farm-04.png","th":"thumbs/farm.jpg","ti":3,"tn":10},{"id":"trace-30","t":"Goat & Farm Dog","src":"pages/farm-10.png","th":"thumbs/farm.jpg","ti":9,"tn":10}]},{"id":"animals","name":"Animals","pages":[{"id":"animals-01","t":"Splashing Elephant"},{"id":"animals-02","t":"Lion Family"},{"id":"animals-03","t":"Bamboo Panda"},{"id":"animals-04","t":"Giraffe & Baby"},{"id":"animals-05","t":"Jungle Monkey"},{"id":"animals-06","t":"Koala"},{"id":"animals-07","t":"Kangaroo & Joey"},{"id":"animals-08","t":"Sleepy Fox"},{"id":"animals-09","t":"Polar Bears"},{"id":"animals-10","t":"Night Owl"}]},{"id":"princesses","name":"Fairy Tale Princesses","pages":[{"id":"princesses-01","t":"Rose Garden Princess"},{"id":"princesses-02","t":"Tower Reader"},{"id":"princesses-03","t":"Forest Tea Party"},{"id":"princesses-04","t":"Enchanted Ride"},{"id":"princesses-05","t":"Ballroom Dance"},{"id":"princesses-06","t":"Flower Swing"},{"id":"princesses-07","t":"Frog by the Fountain"},{"id":"princesses-08","t":"Snowy Courtyard"},{"id":"princesses-09","t":"Magic Wand & Dragon"},{"id":"princesses-10","t":"Swan Lake Boat"}]},{"id":"cartoon","name":"Cartoon Friends","pages":[{"id":"cartoon-01","t":"Bunny & Bear Picnic"},{"id":"cartoon-02","t":"Skateboard Cat"},{"id":"cartoon-03","t":"Firefighter Bear"},{"id":"cartoon-04","t":"Skating Penguin"},{"id":"cartoon-05","t":"Bubble Monster"},{"id":"cartoon-06","t":"Hamster Racer"},{"id":"cartoon-07","t":"Guitar Frog"},{"id":"cartoon-08","t":"Owl Teacher"},{"id":"cartoon-09","t":"Baking Mice"},{"id":"cartoon-10","t":"Camping Raccoon"}]},{"id":"vehicles","name":"Vehicles","pages":[{"id":"vehicles-01","t":"Fire Truck"},{"id":"vehicles-02","t":"Steam Train"},{"id":"vehicles-03","t":"Monster Truck"},{"id":"vehicles-04","t":"Police Patrol"},{"id":"vehicles-05","t":"Digger & Dump Truck"},{"id":"vehicles-06","t":"Balloon Festival"},{"id":"vehicles-07","t":"Race Car"},{"id":"vehicles-08","t":"Pirate Ship"},{"id":"vehicles-09","t":"Jumbo Jet"},{"id":"vehicles-10","t":"Hay Tractor"}]},{"id":"flowers","name":"Flowers & Plants","pages":[{"id":"flowers-01","t":"Flower Bouquet"},{"id":"flowers-02","t":"Sunflower Field"},{"id":"flowers-03","t":"Tulips & Snail"},{"id":"flowers-04","t":"Cactus Garden"},{"id":"flowers-05","t":"Lotus Pond"},{"id":"flowers-06","t":"Blossom Tree Swing"},{"id":"flowers-07","t":"Flower Wreath"},{"id":"flowers-08","t":"Mushroom Garden"},{"id":"flowers-09","t":"Tropical Flowers"},{"id":"flowers-10","t":"Window Box"}]},{"id":"bible","name":"Bible Stories","pages":[{"id":"bible-01","t":"Noah's Ark"},{"id":"bible-02","t":"Baby Moses"},{"id":"bible-03","t":"David the Shepherd"},{"id":"bible-04","t":"Daniel & the Lions"},{"id":"bible-05","t":"Jonah & the Whale"},{"id":"bible-06","t":"The Nativity"},{"id":"bible-07","t":"Loaves & Fishes"},{"id":"bible-08","t":"Calming the Storm"},{"id":"bible-09","t":"The Good Shepherd"},{"id":"bible-10","t":"Garden of Eden"}]},{"id":"patterns","name":"Intricate Patterns","pages":[{"id":"patterns-01","t":"Paisley Mandala"},{"id":"patterns-02","t":"Star Mandala"},{"id":"patterns-03","t":"Pattern Owl"},{"id":"patterns-04","t":"Lace Butterfly"},{"id":"patterns-05","t":"Heart Kaleidoscope"},{"id":"patterns-06","t":"Celtic Knot"},{"id":"patterns-07","t":"Paisley Garden"},{"id":"patterns-08","t":"Pattern Elephant"},{"id":"patterns-09","t":"Star Tiles"},{"id":"patterns-10","t":"Peacock Feathers"}]},{"id":"numbers","name":"Colour by Number","pages":[{"id":"numbers-01","t":"Sunny House"},{"id":"numbers-02","t":"Stripy Fish"},{"id":"numbers-03","t":"Hot Air Balloon"},{"id":"numbers-04","t":"Rainbow"},{"id":"numbers-05","t":"Cupcake"},{"id":"numbers-06","t":"Sailboat"},{"id":"numbers-07","t":"Ladybird"},{"id":"numbers-08","t":"Rocket"},{"id":"numbers-09","t":"Turtle"},{"id":"numbers-10","t":"Butterfly"}]},{"id":"dinosaurs","name":"Dinosaurs","pages":[{"id":"dinosaurs-01","t":"T-Rex & Volcano"},{"id":"dinosaurs-02","t":"Brachiosaurus"},{"id":"dinosaurs-03","t":"Triceratops Family"},{"id":"dinosaurs-04","t":"Stegosaurus"},{"id":"dinosaurs-05","t":"Hatching Dinos"},{"id":"dinosaurs-06","t":"Pterodactyl Falls"},{"id":"dinosaurs-07","t":"Ankylosaurus"},{"id":"dinosaurs-08","t":"Dino Fossil Dig"},{"id":"dinosaurs-09","t":"Spinosaurus Swamp"},{"id":"dinosaurs-10","t":"Dino Waterhole"}]},{"id":"sea","name":"Under the Sea","pages":[{"id":"sea-01","t":"Coral Reef"},{"id":"sea-02","t":"Octopus Treasure"},{"id":"sea-03","t":"Little Mermaid Rock"},{"id":"sea-04","t":"Jumping Dolphins"},{"id":"sea-05","t":"Seahorse Family"},{"id":"sea-06","t":"Mother & Baby Whale"},{"id":"sea-07","t":"Sunken Ship"},{"id":"sea-08","t":"Jellyfish & Starfish"},{"id":"sea-09","t":"Smiley Shark"},{"id":"sea-10","t":"Crab & Shells"}]},{"id":"space","name":"Space","pages":[{"id":"space-01","t":"Floating Astronaut"},{"id":"space-02","t":"Blast Off"},{"id":"space-03","t":"Moon Rover"},{"id":"space-04","t":"Friendly Alien"},{"id":"space-05","t":"Solar System"},{"id":"space-06","t":"Moon Landing"},{"id":"space-07","t":"Space Station"},{"id":"space-08","t":"Robot Astronaut"},{"id":"space-09","t":"Galaxy & Comets"},{"id":"space-10","t":"Cardboard Rocket"}]},{"id":"unicorns","name":"Unicorns & Fairies","pages":[{"id":"unicorns-01","t":"Rainbow Unicorn"},{"id":"unicorns-02","t":"Mushroom Fairy"},{"id":"unicorns-03","t":"Sleepy Baby Unicorn"},{"id":"unicorns-04","t":"Stump Fairy House"},{"id":"unicorns-05","t":"Pegasus"},{"id":"unicorns-06","t":"Unicorn Party"},{"id":"unicorns-07","t":"Watering Fairy"},{"id":"unicorns-08","t":"Forest Stream Unicorn"},{"id":"unicorns-09","t":"Dragonfly Rider"},{"id":"unicorns-10","t":"Moonlight Unicorn"}]},{"id":"dragons","name":"Dragons & Castles","pages":[{"id":"dragons-01","t":"Tower Dragon"},{"id":"dragons-02","t":"Knight & Dragon Picnic"},{"id":"dragons-03","t":"Medieval Castle"},{"id":"dragons-04","t":"Baby Dragon Hatching"},{"id":"dragons-05","t":"Dragon over the Village"},{"id":"dragons-06","t":"Wizard Tower"},{"id":"dragons-07","t":"Dragon Treasure"},{"id":"dragons-08","t":"Knight on Horseback"},{"id":"dragons-09","t":"Marshmallow Dragon"},{"id":"dragons-10","t":"Hilltop Castle"}]},{"id":"farm","name":"Farm","pages":[{"id":"farm-01","t":"Farmyard"},{"id":"farm-02","t":"Farmer on Tractor"},{"id":"farm-03","t":"Mother Hen & Chicks"},{"id":"farm-04","t":"Muddy Pig"},{"id":"farm-05","t":"Sheep & Windmill"},{"id":"farm-06","t":"Horse & Foal"},{"id":"farm-07","t":"Veggie Patch"},{"id":"farm-08","t":"Milking Time"},{"id":"farm-09","t":"Duck Pond"},{"id":"farm-10","t":"Goat & Farm Dog"}]},{"id":"pets","name":"Pets","pages":[{"id":"pets-01","t":"Backyard Puppy"},{"id":"pets-02","t":"Yarn Kitten"},{"id":"pets-03","t":"Carrot Bunny"},{"id":"pets-04","t":"Goldfish Bowl"},{"id":"pets-05","t":"Hamster Wheel"},{"id":"pets-06","t":"Parrot"},{"id":"pets-07","t":"Best Friends"},{"id":"pets-08","t":"Guinea Pig Family"},{"id":"pets-09","t":"Bubble Bath Puppy"},{"id":"pets-10","t":"Sleepy Cat"}]},{"id":"bugs","name":"Bugs & Butterflies","pages":[{"id":"bugs-01","t":"Butterfly"},{"id":"bugs-02","t":"Ladybird"},{"id":"bugs-03","t":"Bee Hive"},{"id":"bugs-04","t":"Hungry Caterpillar"},{"id":"bugs-05","t":"Garden Snail"},{"id":"bugs-06","t":"Dragonfly"},{"id":"bugs-07","t":"Ant Tunnels"},{"id":"bugs-08","t":"Spider Web"},{"id":"bugs-09","t":"Firefly Jar"},{"id":"bugs-10","t":"Grasshopper"}]},{"id":"food","name":"Food & Treats","pages":[{"id":"food-01","t":"Ice Cream Sundae"},{"id":"food-02","t":"Pancake Stack"},{"id":"food-03","t":"Birthday Cake"},{"id":"food-04","t":"Pizza"},{"id":"food-05","t":"Fruit Basket"},{"id":"food-06","t":"Cupcake Stand"},{"id":"food-07","t":"Burger Buddies"},{"id":"food-08","t":"Lolly Shop"},{"id":"food-09","t":"Picnic Basket"},{"id":"food-10","t":"Gingerbread House"}]},{"id":"heroes","name":"Robots & Superheroes","pages":[{"id":"heroes-01","t":"Flying Hero"},{"id":"heroes-02","t":"Helper Robot"},{"id":"heroes-03","t":"Super Dog"},{"id":"heroes-04","t":"Robot Workshop"},{"id":"heroes-05","t":"Super Strong Girl"},{"id":"heroes-06","t":"Hero Team"},{"id":"heroes-07","t":"Gardening Robot"},{"id":"heroes-08","t":"Soccer Robot"},{"id":"heroes-09","t":"Super Cat"},{"id":"heroes-10","t":"Robot Dog"}]},{"id":"holidays","name":"Holidays & Seasons","pages":[{"id":"holidays-01","t":"Christmas Tree"},{"id":"holidays-02","t":"Santa\u2019s Sleigh"},{"id":"holidays-03","t":"Easter Bunny"},{"id":"holidays-04","t":"Pumpkin Patch"},{"id":"holidays-05","t":"Snowman"},{"id":"holidays-06","t":"Beach Day"},{"id":"holidays-07","t":"Rainy Spring"},{"id":"holidays-08","t":"Kite Day"},{"id":"holidays-09","t":"Birthday Party"},{"id":"holidays-10","t":"Gingerbread Baking"}]},{"id":"sports","name":"Sports & Play","pages":[{"id":"sports-01","t":"Soccer in the Park"},{"id":"sports-02","t":"Basketball"},{"id":"sports-03","t":"Playground"},{"id":"sports-04","t":"Surfing"},{"id":"sports-05","t":"Backyard Cricket"},{"id":"sports-06","t":"Ballerina"},{"id":"sports-07","t":"Bike Ride"},{"id":"sports-08","t":"Pool Party"},{"id":"sports-09","t":"Tennis"},{"id":"sports-10","t":"Ice Skating"}]}];
 (() => {
 const W = 1600, H = 1200, TAU = Math.PI * 2;
 const $ = id => document.getElementById(id);
@@ -279,15 +312,16 @@ const ls = { get(k){ try { return localStorage.getItem(k); } catch (e) { return 
 /* ---------- catalogue ---------- */
 let custom = [];
 const PAGE = new Map();
-CATS.forEach(c => c.pages.forEach((p, i) => PAGE.set(p.id, { ...p, cat: c.id, idx: i, src: 'pages/' + p.id + '.png' })));
+CATS.forEach(c => c.pages.forEach((p, i) => PAGE.set(p.id, { th: 'thumbs/' + c.id + '.jpg', ti: i, tn: c.pages.length, ...p, cat: c.id, idx: i, src: p.guide ? null : (p.src || 'pages/' + p.id + '.png') })));
 function pageInfo(id){ return PAGE.get(id) || custom.find(p => p.id === id); }
 
 /* ---------- library ---------- */
 const libHome = $('libHome'), libCat = $('libCat');
-function coverStyle(el, cat, idx, n){
-  el.style.backgroundImage = `url(thumbs/${cat}.jpg)`;
-  el.style.backgroundSize = `${n * 100}% 100%`;
-  el.style.backgroundPosition = `${n > 1 ? idx / (n - 1) * 100 : 0}% 0`;
+function coverStyle(el, p){
+  el.style.backgroundImage = `url(${p.th})`;
+  el.style.backgroundSize = `${p.tn * 100}% 100%`;
+  el.style.backgroundPosition = `${p.tn > 1 ? p.ti / (p.tn - 1) * 100 : 0}% 0`;
+  if (p.cat === 'trace') el.classList.add('faded');
 }
 function el(tag, cls, html){ const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
 function catCard(name, count, onClick){
@@ -303,7 +337,7 @@ function renderHome(){
   const [mine, mcv] = catCard('My pages', custom.length ? custom.length + ' saved' : 'Add your own', () => location.hash = 'c-mine');
   mcv.classList.add('tile-add'); mcv.innerHTML = '<div><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Photos &amp; mandalas</div>';
   grid.appendChild(mine);
-  CATS.forEach(c => { const [b, cv] = catCard(c.name, c.pages.length + ' pictures', () => location.hash = 'c-' + c.id); coverStyle(cv, c.id, 0, c.pages.length); grid.appendChild(b); });
+  CATS.forEach(c => { const [b, cv] = catCard(c.name, c.pages.length + ' pictures', () => location.hash = 'c-' + c.id); coverStyle(cv, PAGE.get(c.pages[0].id)); grid.appendChild(b); });
   renderRecent();
 }
 async function thumbInto(cv, id){
@@ -318,7 +352,7 @@ async function renderRecent(){
   wrap.hidden = !ids.length;
   for (const id of ids){ const p = pageInfo(id);
     const [b, cv] = catCard(p.t, 'Open', () => openPage(id));
-    if (p.cat) coverStyle(cv, p.cat, p.idx, catOf(p.cat).pages.length);
+    if (p.cat) coverStyle(cv, p);
     row.appendChild(b); thumbInto(cv, id); }
 }
 const catOf = id => CATS.find(c => c.id === id);
@@ -348,7 +382,8 @@ async function renderCat(cid){
   c.pages.forEach((p, i) => {
     const [b, cv] = catCard(p.t, cid === 'numbers' ? 'By number' : '', () => openPage(p.id));
     if (cid !== 'numbers') b.querySelector('.count').remove();
-    coverStyle(cv, cid, i, c.pages.length); grid.appendChild(b); thumbInto(cv, p.id).then(ok => { if (ok){ const bd = el('span', 'badge', 'Started'); cv.appendChild(bd); } });
+    const pi = PAGE.get(p.id);
+    coverStyle(cv, pi); grid.appendChild(b); thumbInto(cv, p.id).then(ok => { if (ok){ const bd = el('span', 'badge', 'Started'); cv.appendChild(bd); } });
   });
 }
 
@@ -661,7 +696,7 @@ function beginStroke(e, p){
   snapshot();
   const kind = tool === 'eraser' ? 'eraser' : tool === 'stamp' ? 'stamp' : brush;
   let useMask = false;
-  if (stayInside){ const r = regionAt(p.x, p.y); if (r) useMask = regionMaskCanvas(r); }
+  if (stayInside && !(current && (current.draw || current.trace))){ const r = regionAt(p.x, p.y); if (r) useMask = regionMaskCanvas(r); }
   stroke = { id: e.pointerId, last: p, st: { dist: 0, lastStamp: null }, mask: useMask, kind };
   segment(p, p); flushQueue();
 }
@@ -794,7 +829,7 @@ function flushSave(){
   try {
     paint.toBlob(b => { if (b) idb('set', 'paint:' + id, b); }, 'image/png');
     const t = document.createElement('canvas'); t.width = 320; t.height = 240; const c = t.getContext('2d');
-    c.fillStyle = '#fff'; c.fillRect(0, 0, 320, 240); c.drawImage(paint, 0, 0, 320, 240); c.drawImage(lines, 0, 0, 320, 240);
+    c.fillStyle = '#fff'; c.fillRect(0, 0, 320, 240); c.drawImage(paint, 0, 0, 320, 240); c.globalAlpha = current.trace ? .22 : 1; c.drawImage(lines, 0, 0, 320, 240); c.globalAlpha = 1;
     idb('set', 'thumb:' + id, t.toDataURL('image/jpeg', .72));
   } catch (e) {}
 }
@@ -805,7 +840,9 @@ window.addEventListener('pagehide', flushSave);
 let current = null, loadToken = 0;
 async function loadPage(info){
   flushSave(); const tok = ++loadToken;
-  current = { ...info, numbers: info.cat === 'numbers' };
+  current = { ...info, numbers: info.cat === 'numbers', draw: !!info.guide, trace: info.cat === 'trace' };
+  lines.style.opacity = current.trace ? '.22' : '';
+  if (current.draw || current.trace){ if (tool === 'fill') pickTool('brush'); $('flyout').hidden = true; setColour('#1B1B1B', false); }
   $('pageTitle').textContent = info.t; undo.forEach(recycle); redo.forEach(recycle); undo = []; redo = []; syncUndo();
   lctx.clearRect(0, 0, W, H); pctx.clearRect(0, 0, W, H); nctx.clearRect(0, 0, W, H); mask.fill(0);
   $('progress').hidden = true; $('loading').hidden = false;
@@ -813,9 +850,11 @@ async function loadPage(info){
   try {
     let img;
     if (info.src) img = await loadImg(info.src);
-    else { const b = await idb('get', 'lines:' + info.id); if (b) img = await blobImg(b); }
+    else if (!info.guide){ const b = await idb('get', 'lines:' + info.id); if (b) img = await blobImg(b); }
     if (tok !== loadToken) return;
-    if (img){ setLinesFrom(img); computeRegions(); lineVer++; }
+    if (img) setLinesFrom(img);
+    computeRegions(); lineVer++;
+    if (info.guide) showRef({ src: info.guide, label: 'How to draw' }, true); else restoreRef();
     const saved = await idb('get', 'paint:' + info.id);
     if (tok !== loadToken) return;
     if (saved){ const im = await blobImg(saved); if (tok === loadToken) pctx.drawImage(im, 0, 0); }
@@ -920,6 +959,79 @@ $('fileIn').addEventListener('change', async e => {
   openPage(page.id);
 });
 
+/* ---------- reference window ---------- */
+const refwin = $('refwin'), refImg = $('refImg'), refBody = $('refBody');
+let refZoom = { s: 1, x: 0, y: 0 }, refUrlObj = null;
+function setRefOpen(on){ refwin.hidden = !on; $('refBtn').setAttribute('aria-pressed', String(on)); }
+function applyRefZoom(){ refImg.style.transform = `translate(${refZoom.x}px,${refZoom.y}px) scale(${refZoom.s})`; }
+function showRef(r, open){
+  refZoom = { s: 1, x: 0, y: 0 }; applyRefZoom();
+  if (refUrlObj){ URL.revokeObjectURL(refUrlObj); refUrlObj = null; }
+  $('refTitle').textContent = r.label || 'Reference';
+  if (r.blob){ refUrlObj = URL.createObjectURL(r.blob); refImg.src = refUrlObj; } else refImg.src = r.src;
+  refImg.hidden = false; $('refEmpty').hidden = true;
+  if (open) setRefOpen(true);
+}
+refImg.onerror = () => { refImg.hidden = true; $('refEmpty').hidden = false;
+  $('refEmpty').textContent = 'That picture couldn’t be loaded from its link. Save it to Photos, then add it with +.'; };
+async function restoreRef(){ const r = await idb('get', 'ref:last'); if (r) showRef(r, false); else { refImg.hidden = true; $('refEmpty').hidden = false; $('refEmpty').innerHTML = 'Add a photo with <b>+</b>, paste a picture, or drag one in from Safari.'; $('refTitle').textContent = 'Reference'; } }
+function useRef(r){ showRef(r, true); idb('set', 'ref:last', r); }
+$('refBtn').onclick = () => setRefOpen(refwin.hidden);
+$('refClose').onclick = () => setRefOpen(false);
+$('refAdd').onclick = () => $('refFile').click();
+$('refFile').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) useRef({ blob: f, label: 'My photo' }); });
+$('refLinkBtn').onclick = () => { $('refLink').hidden = !$('refLink').hidden; if (!$('refLink').hidden) $('refUrl').focus(); };
+$('refLink').addEventListener('submit', e => { e.preventDefault(); const u = $('refUrl').value.trim(); if (!/^https?:\/\//i.test(u)){ toast('Paste a link that starts with https://'); return; }
+  useRef({ src: u, label: 'From the web' }); $('refLink').hidden = true; $('refUrl').value = ''; });
+document.addEventListener('paste', e => {
+  if (!studioOpen || document.activeElement === $('refUrl')) return;
+  const items = [...(e.clipboardData ? e.clipboardData.items : [])];
+  const img = items.find(i => i.type.startsWith('image/'));
+  if (img){ e.preventDefault(); useRef({ blob: img.getAsFile(), label: 'Pasted picture' }); return; }
+  const t = e.clipboardData && e.clipboardData.getData('text'); if (t && /^https?:\/\/\S+$/i.test(t.trim())){ e.preventDefault(); useRef({ src: t.trim(), label: 'From the web' }); }
+});
+['dragenter','dragover'].forEach(t => $('studio').addEventListener(t, e => { e.preventDefault(); if (!refwin.hidden) refBody.classList.add('drop'); }));
+['dragleave','drop'].forEach(t => $('studio').addEventListener(t, () => refBody.classList.remove('drop')));
+$('studio').addEventListener('drop', e => {
+  e.preventDefault(); const dt = e.dataTransfer; if (!dt) return;
+  const f = [...dt.files].find(x => x.type.startsWith('image/'));
+  if (f){ useRef({ blob: f, label: 'Dropped picture' }); return; }
+  const u = (dt.getData('text/uri-list') || dt.getData('text/plain') || '').split('\n').find(x => /^https?:/i.test(x.trim()));
+  if (u) useRef({ src: u.trim(), label: 'From the web' });
+});
+// move, resize and zoom the window
+function dragWith(el, onMove){
+  el.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; e.preventDefault(); e.stopPropagation();
+    const r = refwin.getBoundingClientRect(), sr = $('studio').getBoundingClientRect(), x0 = e.clientX, y0 = e.clientY;
+    try { el.setPointerCapture(e.pointerId); } catch (_) {}
+    const mv = ev => onMove(ev.clientX - x0, ev.clientY - y0, r, sr);
+    const up = () => { el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); saveRefBox(); };
+    el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); });
+}
+dragWith($('refBar'), (dx, dy, r, sr) => {
+  const x = Math.max(0, Math.min(sr.width - 80, r.left - sr.left + dx)), y = Math.max(0, Math.min(sr.height - 50, r.top - sr.top + dy));
+  Object.assign(refwin.style, { left: x + 'px', top: y + 'px', right: 'auto' });
+});
+dragWith($('refSize'), (dx, dy, r) => { Object.assign(refwin.style, { width: Math.max(200, r.width + dx) + 'px', height: Math.max(170, r.height + dy) + 'px' }); });
+function saveRefBox(){ ls.set('cc-refbox', JSON.stringify({ l: refwin.style.left, t: refwin.style.top, w: refwin.style.width, h: refwin.style.height })); }
+try { const b = JSON.parse(ls.get('cc-refbox') || 'null'); if (b){ if (b.l){ refwin.style.left = b.l; refwin.style.right = 'auto'; } if (b.t) refwin.style.top = b.t; if (b.w) refwin.style.width = b.w; if (b.h) refwin.style.height = b.h; } } catch (e) {}
+(() => { const pts = new Map(); let start = null;
+  refBody.addEventListener('pointerdown', e => { if (refImg.hidden) return; pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); try { refBody.setPointerCapture(e.pointerId); } catch (_) {} start = { pts: new Map([...pts].map(([k, v]) => [k, { ...v }])), z: { ...refZoom } }; e.stopPropagation(); });
+  refBody.addEventListener('pointermove', e => { if (!pts.has(e.pointerId) || !start) return; pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const cur = [...pts.values()], st = [...start.pts.values()];
+    if (cur.length >= 2 && st.length >= 2){ const d0 = Math.hypot(st[0].x - st[1].x, st[0].y - st[1].y) || 1, d1 = Math.hypot(cur[0].x - cur[1].x, cur[0].y - cur[1].y);
+      const br = refBody.getBoundingClientRect(), cx = (st[0].x + st[1].x) / 2 - br.left, cy = (st[0].y + st[1].y) / 2 - br.top, ns = Math.max(1, Math.min(6, start.z.s * d1 / d0));
+      const ncx = (cur[0].x + cur[1].x) / 2 - br.left, ncy = (cur[0].y + cur[1].y) / 2 - br.top;
+      refZoom = { s: ns, x: ncx - (cx - start.z.x) / start.z.s * ns, y: ncy - (cy - start.z.y) / start.z.s * ns }; }
+    else if (refZoom.s > 1){ refZoom.x = start.z.x + cur[0].x - st[0].x; refZoom.y = start.z.y + cur[0].y - st[0].y; }
+    applyRefZoom(); });
+  const end = e => { pts.delete(e.pointerId); start = pts.size ? { pts: new Map([...pts].map(([k, v]) => [k, { ...v }])), z: { ...refZoom } } : null; if (refZoom.s <= 1.01){ refZoom = { s: 1, x: 0, y: 0 }; applyRefZoom(); } };
+  refBody.addEventListener('pointerup', end); refBody.addEventListener('pointercancel', end);
+  refBody.addEventListener('dblclick', () => { refZoom = refZoom.s > 1 ? { s: 1, x: 0, y: 0 } : { s: 2.2, x: -refBody.clientWidth * .6, y: -refBody.clientHeight * .6 }; applyRefZoom(); });
+  refBody.addEventListener('wheel', e => { e.preventDefault(); e.stopPropagation(); const br = refBody.getBoundingClientRect(), cx = e.clientX - br.left, cy = e.clientY - br.top, ns = Math.max(1, Math.min(6, refZoom.s * Math.exp(-e.deltaY * .01)));
+    refZoom = ns <= 1.01 ? { s: 1, x: 0, y: 0 } : { s: ns, x: cx - (cx - refZoom.x) / refZoom.s * ns, y: cy - (cy - refZoom.y) / refZoom.s * ns }; applyRefZoom(); }, { passive: false });
+})();
+
 /* ---------- docks, fullscreen, save ---------- */
 const studio = $('studio');
 function toggleDock(cls){ studio.classList.toggle(cls); setTimeout(fitView, 270); if (cls === 'hide-rail') $('flyout').hidden = true; ls.set('cc-docks', ['hide-top','hide-rail','hide-tray'].filter(c => studio.classList.contains(c)).join(' ')); }
@@ -938,7 +1050,7 @@ $('fullBtn').onclick = async () => {
   setTimeout(fitView, 120); }));
 $('saveBtn').onclick = () => {
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
-  c.fillStyle = '#fff'; c.fillRect(0, 0, W, H); c.drawImage(paint, 0, 0); c.drawImage(lines, 0, 0);
+  c.fillStyle = '#fff'; c.fillRect(0, 0, W, H); c.drawImage(paint, 0, 0); c.globalAlpha = current && current.trace ? .22 : 1; c.drawImage(lines, 0, 0); c.globalAlpha = 1;
   $('saveImg').src = cv.toDataURL('image/png'); $('saveSheet').hidden = false;
 };
 document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => b.closest('.overlay').hidden = true);
