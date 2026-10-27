@@ -169,6 +169,29 @@ input[type=range]{width:70px;accent-color:var(--accent)}
 .save-img{width:100%;border-radius:10px;display:block;box-shadow:inset 0 0 0 1px var(--line);-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto}
 .hint{color:var(--muted);font-size:14px;margin:12px 2px 0;line-height:1.5;max-width:65ch}
 
+/* kid lock */
+.lockbtn{margin-left:auto}
+.lockbtn[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.lock-on, .lock-on *{-webkit-touch-callout:none}
+.lock-on .save-img{-webkit-touch-callout:default}
+.lock-sheet{width:min(440px,100%)}
+.lock-q{font-family:var(--display);font-weight:800;font-size:40px;text-align:center;margin:6px 0 4px;letter-spacing:-.01em}
+.lock-ans{font-family:var(--display);font-weight:800;font-size:32px;text-align:center;min-height:56px;line-height:56px;border:2px solid var(--line);border-radius:14px;margin:10px 0 12px;background:var(--bg)}
+.lock-ans.bad{border-color:var(--warn);animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.keypad button{min-height:56px;border-radius:14px;border:1px solid var(--line);background:var(--surface);font-family:var(--display);font-weight:800;font-size:24px;color:var(--ink)}
+.keypad button.ok{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-size:18px}
+.keypad button:disabled{opacity:.4}
+.lock-msg{text-align:center;color:var(--muted);font-weight:700;font-size:14px;min-height:20px;margin:0}
+.switch-row{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}
+.switch-row b{display:block;font-size:16px}.switch-row span{color:var(--muted);font-size:13.5px;font-weight:600}
+.switch-row .txt{margin-right:auto}
+.sw{position:relative;width:58px;height:34px;border-radius:20px;border:0;background:var(--line);flex:none;transition:background .2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:transform .2s}
+.sw[aria-checked="true"]{background:var(--accent)}.sw[aria-checked="true"]::after{transform:translateX(24px)}
+.lock-tip{margin-top:14px;font-size:14px;line-height:1.5;color:var(--muted)}
+.lock-tip ol{margin:6px 0 0;padding-left:20px}
 .toast{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:30;background:var(--ink);color:var(--bg);padding:11px 16px;border-radius:12px;font-weight:800;font-size:14.5px;max-width:calc(100% - 32px);text-align:center;box-shadow:0 8px 24px var(--shadow)}
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:25;overflow:hidden}
 .confetti i{position:absolute;top:-20px;width:10px;height:16px;border-radius:3px;animation:fall 2.4s ease-in forwards}
@@ -200,6 +223,7 @@ input[type=range]{width:70px;accent-color:var(--accent)}
         <h1 class="brand"><span class="crayons" aria-hidden="true"><i style="background:#E63946;height:30px"></i><i style="background:#FFD23F;height:24px"></i><i style="background:#3BB273;height:28px"></i><i style="background:#4EA5F2;height:22px"></i><i style="background:#8E6BD8;height:26px"></i></span>Colour Corner</h1>
         <p class="lede" id="lede">Pick a picture and start colouring</p>
       </div>
+      <button class="pill lockbtn" id="lockBtn" aria-pressed="false" aria-label="Kid lock"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path id="lockShackle" d="M8 11V7a4 4 0 018 0"/></svg><span id="lockLbl">Kid lock</span></button>
     </header>
     <div id="recentWrap" hidden>
       <div class="sec">Keep colouring</div>
@@ -278,6 +302,28 @@ input[type=range]{width:70px;accent-color:var(--accent)}
     <div class="sheet-head"><h2 id="saveTitle">Your picture</h2><button class="pill" data-close>Close</button></div>
     <img id="saveImg" class="save-img" alt="Your finished colouring page">
     <p class="hint">Press and hold the picture, then tap <strong>Save to Photos</strong> or <strong>Share</strong>.</p>
+  </div>
+</div>
+<div class="overlay" id="lockSheet" hidden role="dialog" aria-modal="true" aria-labelledby="lockTitle">
+  <div class="sheet lock-sheet">
+    <div class="sheet-head"><h2 id="lockTitle">Kid lock</h2><button class="pill" data-close>Done</button></div>
+    <div class="switch-row"><div class="txt"><b>Lock the app</b><span>A grown-up maths question guards photos, links, saving and leaving full screen.</span></div>
+      <button class="sw" id="lockSw" role="switch" aria-checked="false" aria-label="Kid lock"></button></div>
+    <div class="lock-tip"><b>To stop the Home button and app switching too</b>, turn on the iPad's Guided Access:
+      <ol><li>Settings → Accessibility → Guided Access → turn it on and set a passcode.</li>
+      <li>Open Colour Corner and triple-click the top (or Home) button, then tap Start.</li>
+      <li>Triple-click again and enter your passcode to finish.</li></ol>
+      On Android, use Settings → Security → App pinning.</div>
+  </div>
+</div>
+<div class="overlay" id="gateSheet" hidden role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+  <div class="sheet lock-sheet">
+    <div class="sheet-head"><h2 id="gateTitle">Grown-ups only</h2><button class="pill" id="gateCancel">Cancel</button></div>
+    <p class="lock-msg" id="gateWhy"></p>
+    <div class="lock-q" id="gateQ"></div>
+    <div class="lock-ans" id="gateAns" aria-live="polite"></div>
+    <p class="lock-msg" id="gateMsg"></p>
+    <div class="keypad" id="keypad"></div>
   </div>
 </div>
 <input type="file" id="fileIn" accept="image/*" hidden>
@@ -360,7 +406,7 @@ async function renderCat(cid){
   const grid = $('catGrid'); grid.innerHTML = '';
   if (cid === 'mine'){
     $('catTitle').textContent = 'My pages';
-    const [up, ucv] = catCard('Add a photo', 'Any line drawing', () => $('fileIn').click());
+    const [up, ucv] = catCard('Add a photo', 'Any line drawing', () => gate('Answer to choose a photo', () => $('fileIn').click()));
     ucv.classList.add('tile-add'); ucv.innerHTML = '<div><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/></svg>From your photos</div>';
     const [mk, mkcv] = catCard('New mandala', 'Made for you', () => makeMandalaPage());
     mkcv.classList.add('tile-add'); mkcv.innerHTML = '<div><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 4v5M12 15v5M4 12h5M15 12h5"/></svg>Endless patterns</div>';
@@ -1060,6 +1106,67 @@ document.addEventListener('keydown', e => {
   if (!studioOpen) return;
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z'){ e.preventDefault(); (e.shiftKey ? $('redoBtn') : $('undoBtn')).click(); }
 });
+/* ---------- kid lock ---------- */
+let locked = ls.get('cc-lock') === '1', gateDo = null, gateA = 0, gateTries = 0, gateWait = 0;
+function paintLock(){
+  $('lockBtn').setAttribute('aria-pressed', locked); $('lockLbl').textContent = locked ? 'Locked' : 'Kid lock';
+  $('lockShackle').setAttribute('d', locked ? 'M8 11V7a4 4 0 018 0v4' : 'M8 11V7a4 4 0 018 0');
+  $('lockSw').setAttribute('aria-checked', locked); document.body.classList.toggle('lock-on', locked);
+}
+function newQ(){
+  const r = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const k = r(0, 2); let q;
+  if (k === 0){ const a = r(6, 12), b = r(4, 9), c = r(3, 19); q = a + ' × ' + b + ' + ' + c; gateA = a * b + c; }
+  else if (k === 1){ const a = r(6, 12), b = r(6, 12), c = r(2, 15); q = a + ' × ' + b + ' − ' + c; gateA = a * b - c; }
+  else { const a = r(24, 89), b = r(17, 69); q = a + ' + ' + b; gateA = a + b; }
+  $('gateQ').textContent = q + ' = ?'; $('gateAns').textContent = '';
+}
+function gate(why, fn){
+  if (!locked){ fn(); return; }
+  gateDo = fn; gateTries = 0; $('gateWhy').textContent = why; $('gateMsg').textContent = ''; newQ(); $('gateSheet').hidden = false;
+}
+function gateClose(){ $('gateSheet').hidden = true; gateDo = null; }
+function gateKey(k){
+  if (Date.now() < gateWait) return;
+  const el = $('gateAns'); el.classList.remove('bad');
+  if (k === 'del'){ el.textContent = el.textContent.slice(0, -1); return; }
+  if (k !== 'ok'){ if (el.textContent.length < 4) el.textContent += k; return; }
+  if (!el.textContent) return;
+  if (+el.textContent === gateA){ const fn = gateDo; gateClose(); if (fn) fn(); return; }
+  void el.offsetWidth; el.classList.add('bad'); gateTries++;
+  if (gateTries >= 3){
+    gateTries = 0; gateWait = Date.now() + 15000; $('keypad').querySelectorAll('button').forEach(b => b.disabled = true);
+    let n = 15; $('gateMsg').textContent = 'Too many tries. Wait ' + n + 's';
+    const t = setInterval(() => { n--; if (n > 0) $('gateMsg').textContent = 'Too many tries. Wait ' + n + 's';
+      else { clearInterval(t); $('keypad').querySelectorAll('button').forEach(b => b.disabled = false); $('gateMsg').textContent = ''; newQ(); } }, 1000);
+  } else { $('gateMsg').textContent = 'Not quite. Try a new one.'; setTimeout(newQ, 450); }
+}
+['1','2','3','4','5','6','7','8','9','del','0','ok'].forEach(k => {
+  const b = document.createElement('button'); b.type = 'button';
+  b.textContent = k === 'del' ? '⌫' : k === 'ok' ? 'OK' : k; if (k === 'ok') b.className = 'ok';
+  b.setAttribute('aria-label', k === 'del' ? 'Delete' : k === 'ok' ? 'Check answer' : k);
+  b.onclick = () => gateKey(k); $('keypad').appendChild(b);
+});
+$('gateCancel').onclick = gateClose;
+$('gateSheet').addEventListener('click', e => { if (e.target === $('gateSheet')) gateClose(); });
+document.addEventListener('keydown', e => {
+  if ($('gateSheet').hidden) return;
+  if (/^[0-9]$/.test(e.key)) gateKey(e.key); else if (e.key === 'Backspace') gateKey('del'); else if (e.key === 'Enter') gateKey('ok');
+});
+$('lockBtn').onclick = () => gate('Answer to change the kid lock', () => { $('lockSheet').hidden = false; });
+$('lockSw').onclick = () => {
+  if (locked){ locked = false; ls.set('cc-lock', '0'); paintLock(); toast('Kid lock is off'); }
+  else { locked = true; ls.set('cc-lock', '1'); paintLock(); $('lockSheet').hidden = true; toast('Kid lock is on'); }
+};
+// Gate every way out of the app: photo pickers, web links, save/share, leaving full screen.
+const guard = (el, why, prop = 'onclick') => { const orig = el[prop]; el[prop] = function(ev){ gate(why, () => orig.call(el, ev)); }; };
+guard($('refAdd'), 'Answer to choose a photo');
+guard($('refLinkBtn'), 'Answer to use a web link');
+guard($('saveBtn'), 'Answer to save or share the picture');
+{ const f = $('fullBtn'), orig = f.onclick; f.onclick = ev => isFull() ? gate('Answer to leave full screen', () => orig.call(f, ev)) : orig.call(f, ev); }
+document.addEventListener('contextmenu', e => { if (locked && !e.target.closest('.save-img')) e.preventDefault(); });
+paintLock();
+
 let toastT = 0;
 function toast(m){ const t = $('toast'); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3800); }
 
