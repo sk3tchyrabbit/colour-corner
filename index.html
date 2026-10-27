@@ -111,6 +111,9 @@ input[type=range]{width:70px;accent-color:var(--accent)}
 .track::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
 .switch input:checked + .track{background:var(--accent)}
 .switch input:checked + .track::after{transform:translateX(18px)}
+.mode{display:flex;flex-direction:column;gap:4px;padding:4px 0;flex:none}
+.mode-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:12px;border:2px solid transparent;background:transparent;font-size:11px;font-weight:800;color:var(--muted)}
+.mode-btn[aria-pressed="true"]{border-color:var(--accent);color:var(--ink);background:color-mix(in srgb,var(--accent) 13%,transparent)}
 .tab-rail{left:calc(10px + 88px + 6px + env(safe-area-inset-left,0px));top:50%;width:30px;height:64px;border-radius:0 14px 14px 0;transform:translateY(-50%);transition:left .25s}
 .hide-rail .rail{transform:translateX(calc(-100% - 20px - env(safe-area-inset-left,0px)));opacity:0;pointer-events:none}
 .hide-rail .tab-rail{left:env(safe-area-inset-left,0px)}
@@ -253,13 +256,13 @@ const CATS = [{"id":"animals","name":"Animals","pages":[{"id":"animals-01","t":"
 const W = 1600, H = 1200, TAU = Math.PI * 2;
 const $ = id => document.getElementById(id);
 const paint = $('paint'), lines = $('lines'), nums = $('nums');
-const pctx = paint.getContext('2d', { willReadFrequently: true });
+const pctx = paint.getContext('2d');
 const lctx = lines.getContext('2d', { willReadFrequently: true });
 const nctx = nums.getContext('2d');
 const scratch = document.createElement('canvas'); scratch.width = W; scratch.height = H;
 const sctx = scratch.getContext('2d');
 const maskCv = document.createElement('canvas'); maskCv.width = W; maskCv.height = H;
-const mctx = maskCv.getContext('2d', { willReadFrequently: true });
+const mctx = maskCv.getContext('2d');
 
 /* ---------- storage ---------- */
 let dbp = null;
@@ -387,7 +390,7 @@ const ICON = {
   move:'<path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/>',
 };
 let tool = 'fill', brush = 'marker', stampType = 'star', fillStyle = 'solid';
-let colour = '#4EA5F2', size = 28, stayInside = ls.get('cc-inside') !== '0', pencilOnly = ls.get('cc-pencil') === '1', penSeen = false;
+let colour = '#4EA5F2', size = 28, stayInside = ls.get('cc-inside') !== '0', pencilOnly = ls.get('cc-pencil') === '1', modeChosen = ls.get('cc-mode-set') === '1', penSeen = false;
 
 const rail = $('rail');
 function buildRail(){
@@ -399,13 +402,17 @@ function buildRail(){
   rail.appendChild(sz);
   rail.appendChild(el('div', 'rsep'));
   const sw1 = el('label', 'switch', `<input type="checkbox" id="inside" ${stayInside ? 'checked' : ''}><span class="track"></span><span>Stay in lines</span>`);
-  const sw2 = el('label', 'switch', `<input type="checkbox" id="pencilOnly" ${pencilOnly ? 'checked' : ''}><span class="track"></span><span>Pencil only</span>`);
-  sw2.title = 'Only Apple Pencil draws. Fingers move and zoom the page.';
+  const sw2 = el('div', 'mode', `<span class="lbl">Colour with</span>
+    <button class="mode-btn" data-mode="finger" aria-label="Colour with your finger"><svg class="i" viewBox="0 0 24 24"><path d="M9 11V5a1.5 1.5 0 013 0v5"/><path d="M12 10V4a1.5 1.5 0 013 0v6"/><path d="M15 10V6a1.5 1.5 0 013 0v7c0 4-2.5 7-6.5 7S5 17 4.5 14l-.9-3.2a1.4 1.4 0 012.6-1L8 13V8a1.5 1.5 0 013 0"/></svg>Finger</button>
+    <button class="mode-btn" data-mode="pencil" aria-label="Colour with Apple Pencil only"><svg class="i" viewBox="0 0 24 24"><path d="M16.5 3.5l4 4L8 20l-5 1 1-5z"/><path d="M14 6l4 4"/></svg>Pencil</button>`);
   rail.append(sw1, sw2);
   $('size').addEventListener('input', e => { size = +e.target.value; updateDot(); });
   $('inside').addEventListener('change', e => { stayInside = e.target.checked; ls.set('cc-inside', stayInside ? '1' : '0'); });
-  $('pencilOnly').addEventListener('change', e => { pencilOnly = e.target.checked; ls.set('cc-pencil', pencilOnly ? '1' : '0'); });
+  rail.querySelectorAll('.mode-btn').forEach(b => b.onclick = () => { setMode(b.dataset.mode === 'pencil'); modeChosen = true; ls.set('cc-mode-set', '1');
+    toast(pencilOnly ? 'Pencil mode: Apple Pencil colours, fingers move and zoom.' : 'Finger mode: one finger colours, two fingers move and zoom.'); });
+  setMode(pencilOnly);
 }
+function setMode(p){ pencilOnly = p; ls.set('cc-pencil', p ? '1' : '0'); rail.querySelectorAll('.mode-btn').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.mode === 'pencil') === p))); }
 function pickTool(t){
   const reopen = t === tool && !$('flyout').hidden;
   tool = t;
@@ -506,44 +513,58 @@ function setLinesFrom(img){
 function loadImg(src){ return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; }); }
 async function blobImg(b){ const u = URL.createObjectURL(b); try { return await loadImg(u); } finally { setTimeout(() => URL.revokeObjectURL(u), 1000); } }
 
-/* ---------- region helpers ---------- */
+/* ---------- region helpers (precomputed once per page) ---------- */
+let lab = new Int32Array(W * H), RB = [];   // RB[id] = [minx, miny, maxx, maxy, area]
+const STK = new Int32Array(W * H);
+function computeRegions(){
+  lab.fill(-1); RB = [];
+  for (let s = 0; s < W * H; s++){
+    if (mask[s] || lab[s] !== -1) continue;
+    const id = RB.length; let sp = 0, area = 0, minx = W, miny = H, maxx = 0, maxy = 0;
+    STK[sp++] = s; lab[s] = id;
+    while (sp){ const i = STK[--sp]; area++; const x = i % W, y = (i - x) / W;
+      if (x < minx) minx = x; if (x > maxx) maxx = x; if (y < miny) miny = y; if (y > maxy) maxy = y;
+      if (x > 0 && !mask[i - 1] && lab[i - 1] === -1){ lab[i - 1] = id; STK[sp++] = i - 1; }
+      if (x < W - 1 && !mask[i + 1] && lab[i + 1] === -1){ lab[i + 1] = id; STK[sp++] = i + 1; }
+      if (y > 0 && !mask[i - W] && lab[i - W] === -1){ lab[i - W] = id; STK[sp++] = i - W; }
+      if (y < H - 1 && !mask[i + W] && lab[i + W] === -1){ lab[i + W] = id; STK[sp++] = i + W; } }
+    RB.push([minx, miny, maxx, maxy, area]);
+  }
+  // grow each region a few pixels under the neighbouring lines so fills meet the ink with no white halo
+  for (let pass = 0; pass < 4; pass++){
+    let n = 0;
+    for (let i = W; i < W * H - W; i++){
+      if (lab[i] !== -1) continue;
+      const l = lab[i - 1] >= 0 ? lab[i - 1] : lab[i + 1] >= 0 ? lab[i + 1] : lab[i - W] >= 0 ? lab[i - W] : lab[i + W];
+      if (l >= 0){ STK[n++] = i; STK[n++] = l; }
+    }
+    for (let k = 0; k < n; k += 2){ const i = STK[k], l = STK[k + 1]; if (lab[i] === -1){ lab[i] = l;
+      const x = i % W, y = (i - x) / W, b = RB[l]; if (x < b[0]) b[0] = x; if (x > b[2]) b[2] = x; if (y < b[1]) b[1] = y; if (y > b[3]) b[3] = y; } }
+  }
+}
 function regionAt(x0, y0){
   x0 = Math.floor(x0); y0 = Math.floor(y0);
   if (x0 < 0 || y0 < 0 || x0 >= W || y0 >= H) return null;
-  if (mask[y0 * W + x0]){ let found = false;
-    for (let r = 1; r <= 10 && !found; r++) for (const [dx, dy] of [[r,0],[-r,0],[0,r],[0,-r],[r,r],[-r,-r],[r,-r],[-r,r]]){
-      const x = x0 + dx, y = y0 + dy; if (x >= 0 && y >= 0 && x < W && y < H && !mask[y * W + x]){ x0 = x; y0 = y; found = true; break; } }
-    if (!found) return null; }
-  const reg = new Uint8Array(W * H), stack = [x0, y0]; let minx = W, miny = H, maxx = 0, maxy = 0;
-  while (stack.length){
-    const y = stack.pop(); let x = stack.pop(); let i = y * W + x;
-    while (x >= 0 && !mask[i] && !reg[i]){ x--; i--; } x++; i++;
-    let up = false, down = false; if (y < miny) miny = y; if (y > maxy) maxy = y; if (x < minx) minx = x;
-    while (x < W && !mask[i] && !reg[i]){
-      reg[i] = 1;
-      if (y > 0){ const j = i - W; if (!mask[j] && !reg[j]){ if (!up){ stack.push(x, y - 1); up = true; } } else up = false; }
-      if (y < H - 1){ const j = i + W; if (!mask[j] && !reg[j]){ if (!down){ stack.push(x, y + 1); down = true; } } else down = false; }
-      x++; i++;
-    }
-    if (x - 1 > maxx) maxx = x - 1;
-  }
-  for (let pass = 0; pass < 3; pass++){ const add = [];
-    for (let i = W; i < W * H - W; i++) if (!reg[i] && mask[i] && (reg[i - 1] || reg[i + 1] || reg[i - W] || reg[i + W])) add.push(i);
-    for (const i of add) reg[i] = 1; }
-  return { reg, minx: Math.max(0, minx - 3), miny: Math.max(0, miny - 3), maxx: Math.min(W - 1, maxx + 3), maxy: Math.min(H - 1, maxy + 3), sx: x0, sy: y0 };
+  let id = lab[y0 * W + x0];
+  if (id < 0){ for (let r = 1; r <= 10 && id < 0; r++) for (const [dx, dy] of [[r,0],[-r,0],[0,r],[0,-r],[r,r],[-r,-r],[r,-r],[-r,r]]){
+      const x = x0 + dx, y = y0 + dy; if (x >= 0 && y >= 0 && x < W && y < H && lab[y * W + x] >= 0){ id = lab[y * W + x]; x0 = x; y0 = y; break; } } }
+  if (id < 0) return null;
+  const b = RB[id]; return { id, minx: b[0], miny: b[1], maxx: b[2], maxy: b[3], sx: x0, sy: y0 };
 }
 function fillAt(x, y){
   const r = regionAt(x, y); if (!r) return;
   snapshot();
-  const { minx, miny, maxx, maxy, reg } = r, w = maxx - minx + 1, h = maxy - miny + 1;
-  const img = pctx.getImageData(minx, miny, w, h), p = img.data, col = hex(colour);
+  const { minx, miny, maxx, maxy, id } = r, w = maxx - minx + 1, h = maxy - miny + 1;
+  const img = sctx.createImageData(w, h), p = img.data, col = hex(colour);
   const style = current && current.numbers ? 'solid' : fillStyle;
-  for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++){
-    const i = (miny + yy) * W + minx + xx; if (!reg[i]) continue;
-    const v = fillPixel(style, col, minx + xx, miny + yy, minx, miny, maxx, maxy), k = (yy * w + xx) * 4;
-    p[k] = v[0]; p[k + 1] = v[1]; p[k + 2] = v[2]; p[k + 3] = 255;
-  }
-  pctx.putImageData(img, minx, miny);
+  if (style === 'solid'){ const d32 = new Uint32Array(p.buffer), v = (255 << 24 | col[2] << 16 | col[1] << 8 | col[0]) >>> 0;
+    for (let yy = 0, o = 0; yy < h; yy++){ const row = (miny + yy) * W + minx; for (let xx = 0; xx < w; xx++, o++) if (lab[row + xx] === id) d32[o] = v; } }
+  else for (let yy = 0; yy < h; yy++){ const row = (miny + yy) * W + minx;
+    for (let xx = 0; xx < w; xx++){ if (lab[row + xx] !== id) continue;
+      const v = style === 'solid' ? col : fillPixel(style, col, minx + xx, miny + yy, minx, miny, maxx, maxy), k = (yy * w + xx) * 4;
+      p[k] = v[0]; p[k + 1] = v[1]; p[k + 2] = v[2]; p[k + 3] = 255; } }
+  sctx.clearRect(minx, miny, w, h); sctx.putImageData(img, minx, miny);
+  pctx.drawImage(scratch, minx, miny, w, h, minx, miny, w, h); sctx.clearRect(minx, miny, w, h);
   if (current && current.numbers) checkNumbers(r.sx, r.sy);
   queueSave();
 }
@@ -626,13 +647,15 @@ function drawStamp(c, type, x, y, r, rot, col){
   c.restore();
 }
 
-/* ---------- strokes ---------- */
-let stroke = null; // {id, last, st, mask, kind}
+/* ---------- strokes (drawn once per frame) ---------- */
+let stroke = null, queue = [], raf = 0, maskBox = null, lineVer = 0;
 function regionMaskCanvas(r){
-  const { reg, minx, miny, maxx, maxy } = r, w = maxx - minx + 1, h = maxy - miny + 1;
-  mctx.clearRect(0, 0, W, H); const img = mctx.createImageData(w, h), d = img.data;
-  for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) if (reg[(miny + yy) * W + minx + xx]) d[(yy * w + xx) * 4 + 3] = 255;
-  mctx.putImageData(img, minx, miny); return true;
+  if (maskBox && maskBox[4] === r.id && maskBox[5] === lineVer) return true;   // same area as last stroke: reuse
+  if (maskBox) mctx.clearRect(maskBox[0], maskBox[1], maskBox[2], maskBox[3]);
+  const { id, minx, miny, maxx, maxy } = r, w = maxx - minx + 1, h = maxy - miny + 1;
+  const img = mctx.createImageData(w, h), d = new Uint32Array(img.data.buffer);
+  for (let yy = 0, o = 0; yy < h; yy++){ const row = (miny + yy) * W + minx; for (let xx = 0; xx < w; xx++, o++) if (lab[row + xx] === id) d[o] = 0xFF000000; }
+  mctx.putImageData(img, minx, miny); maskBox = [minx, miny, w, h, id, lineVer]; return true;
 }
 function beginStroke(e, p){
   snapshot();
@@ -640,19 +663,25 @@ function beginStroke(e, p){
   let useMask = false;
   if (stayInside){ const r = regionAt(p.x, p.y); if (r) useMask = regionMaskCanvas(r); }
   stroke = { id: e.pointerId, last: p, st: { dist: 0, lastStamp: null }, mask: useMask, kind };
-  segment(p, p);
+  segment(p, p); flushQueue();
 }
-function segment(a, b){
-  const k = stroke.kind, pad = Math.max(a.w, b.w) * 2.4 + 30;
-  const x0 = Math.max(0, Math.floor(Math.min(a.x, b.x) - pad)), y0 = Math.max(0, Math.floor(Math.min(a.y, b.y) - pad));
-  const x1 = Math.min(W, Math.ceil(Math.max(a.x, b.x) + pad)), y1 = Math.min(H, Math.ceil(Math.max(a.y, b.y) + pad));
-  const bw = x1 - x0, bh = y1 - y0; if (bw <= 0 || bh <= 0) return;
+function segment(a, b){ queue.push(a, b); if (!raf) raf = requestAnimationFrame(flushQueue); }
+function flushQueue(){
+  if (raf){ cancelAnimationFrame(raf); raf = 0; }
+  if (!stroke || !queue.length){ queue = []; return; }
+  const k = stroke.kind; let x0 = W, y0 = H, x1 = 0, y1 = 0;
+  for (let i = 0; i < queue.length; i++){ const p = queue[i], pad = p.w * 2.4 + 30;
+    if (p.x - pad < x0) x0 = p.x - pad; if (p.y - pad < y0) y0 = p.y - pad; if (p.x + pad > x1) x1 = p.x + pad; if (p.y + pad > y1) y1 = p.y + pad; }
+  x0 = Math.max(0, Math.floor(x0)); y0 = Math.max(0, Math.floor(y0)); x1 = Math.min(W, Math.ceil(x1)); y1 = Math.min(H, Math.ceil(y1));
+  const bw = x1 - x0, bh = y1 - y0, q = queue; queue = [];
+  if (bw <= 0 || bh <= 0) return;
   if (!stroke.mask){
     pctx.save(); if (k === 'eraser') pctx.globalCompositeOperation = 'destination-out';
-    drawSeg(pctx, k, a, b, stroke.st); pctx.restore(); return;
+    for (let i = 0; i < q.length; i += 2) drawSeg(pctx, k, q[i], q[i + 1], stroke.st);
+    pctx.restore(); return;
   }
   sctx.clearRect(x0, y0, bw, bh);
-  drawSeg(sctx, k, a, b, stroke.st);
+  for (let i = 0; i < q.length; i += 2) drawSeg(sctx, k, q[i], q[i + 1], stroke.st);
   sctx.save(); sctx.globalCompositeOperation = 'destination-in'; sctx.drawImage(maskCv, x0, y0, bw, bh, x0, y0, bw, bh); sctx.restore();
   pctx.save(); if (k === 'eraser') pctx.globalCompositeOperation = 'destination-out';
   pctx.drawImage(scratch, x0, y0, bw, bh, x0, y0, bw, bh); pctx.restore();
@@ -696,7 +725,7 @@ vp.addEventListener('pointerdown', e => {
   try { vp.setPointerCapture(e.pointerId); } catch (_) {}
   $('flyout').hidden = true;
   if (e.pointerType === 'pen' && !penSeen){ penSeen = true;
-    if (!pencilOnly){ pencilOnly = true; const c = $('pencilOnly'); if (c) c.checked = true; ls.set('cc-pencil', '1'); toast('Apple Pencil found. Fingers now move and zoom the page. Switch off “Pencil only” to colour with fingers.'); } }
+    if (!pencilOnly && !modeChosen){ setMode(true); toast('Apple Pencil found, so fingers now move and zoom. Tap Finger in the tools to colour with fingers.'); } }
   const touches = touchList();
   if (e.pointerType === 'touch' && touches.length >= 2){
     if (stroke && ptrs.get(stroke.id) && ptrs.get(stroke.id).type === 'touch'){ cancelStroke(); }
@@ -726,10 +755,10 @@ function endPtr(e){
   if (!touchList().length) blockTouch = false;
   if (pan && pan.id === e.pointerId) pan = null;
   if (pendingFill && pendingFill.id === e.pointerId){ const p = pendingFill.p; pendingFill = null; if (e.type === 'pointerup') fillAt(p.x, p.y); }
-  if (stroke && stroke.id === e.pointerId){ stroke = null; queueSave(); }
+  if (stroke && stroke.id === e.pointerId){ flushQueue(); stroke = null; queueSave(); }
 }
 vp.addEventListener('pointerup', endPtr); vp.addEventListener('pointercancel', endPtr);
-function cancelStroke(){ if (!stroke) return; stroke = null; if (undo.length){ pctx.putImageData(undo.pop(), 0, 0); syncUndo(); } }
+function cancelStroke(){ if (!stroke) return; queue = []; if (raf){ cancelAnimationFrame(raf); raf = 0; } stroke = null; if (undo.length){ const c = undo.pop(); restoreFrom(c); recycle(c); syncUndo(); } }
 function startPinch(t){ const [a, b] = t; pinch = { d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, cx0: (a.x + b.x) / 2 - vr.left, cy0: (a.y + b.y) / 2 - vr.top, s0: view.s, x0: view.x, y0: view.y }; }
 function updatePinch(){
   const t = touchList(); if (t.length < 2) return; const [a, b] = t;
@@ -739,12 +768,16 @@ function updatePinch(){
   view.s = ns; view.x = cx - wx * ns; view.y = cy - wy * ns; applyView();
 }
 
-/* ---------- undo ---------- */
-let undo = [], redo = [];
-function snapshot(){ undo.push(pctx.getImageData(0, 0, W, H)); if (undo.length > 8) undo.shift(); redo = []; syncUndo(); }
+/* ---------- undo (canvas copies, no pixel read-back) ---------- */
+let undo = [], redo = []; const spare = [];
+function copyOfPaint(){ const c = spare.pop() || Object.assign(document.createElement('canvas'), { width: W, height: H });
+  const x = c.getContext('2d'); x.clearRect(0, 0, W, H); x.drawImage(paint, 0, 0); return c; }
+function recycle(c){ if (spare.length < 2) spare.push(c); else { c.width = 0; c.height = 0; } }
+function restoreFrom(c){ pctx.clearRect(0, 0, W, H); pctx.drawImage(c, 0, 0); }
+function snapshot(){ undo.push(copyOfPaint()); if (undo.length > 6) recycle(undo.shift()); redo.forEach(recycle); redo = []; syncUndo(); }
 function syncUndo(){ $('undoBtn').disabled = !undo.length; $('redoBtn').disabled = !redo.length; }
-$('undoBtn').onclick = () => { if (!undo.length) return; redo.push(pctx.getImageData(0, 0, W, H)); pctx.putImageData(undo.pop(), 0, 0); syncUndo(); afterRestore(); };
-$('redoBtn').onclick = () => { if (!redo.length) return; undo.push(pctx.getImageData(0, 0, W, H)); pctx.putImageData(redo.pop(), 0, 0); syncUndo(); afterRestore(); };
+$('undoBtn').onclick = () => { if (!undo.length) return; redo.push(copyOfPaint()); const c = undo.pop(); restoreFrom(c); recycle(c); syncUndo(); afterRestore(); };
+$('redoBtn').onclick = () => { if (!redo.length) return; undo.push(copyOfPaint()); const c = redo.pop(); restoreFrom(c); recycle(c); syncUndo(); afterRestore(); };
 function afterRestore(){ if (current && current.numbers) recheckAllNumbers(); queueSave(); }
 let clearArmed = 0;
 $('clearBtn').onclick = () => {
@@ -755,7 +788,7 @@ function disarm(){ clearTimeout(clearArmed); clearArmed = 0; $('clearBtn').style
 
 /* ---------- save progress ---------- */
 let saveT = 0;
-function queueSave(){ clearTimeout(saveT); saveT = setTimeout(flushSave, 800); }
+function queueSave(){ clearTimeout(saveT); saveT = setTimeout(flushSave, 2500); }
 function flushSave(){
   if (!saveT || !current) return; clearTimeout(saveT); saveT = 0; const id = current.id;
   try {
@@ -773,7 +806,7 @@ let current = null, loadToken = 0;
 async function loadPage(info){
   flushSave(); const tok = ++loadToken;
   current = { ...info, numbers: info.cat === 'numbers' };
-  $('pageTitle').textContent = info.t; undo = []; redo = []; syncUndo();
+  $('pageTitle').textContent = info.t; undo.forEach(recycle); redo.forEach(recycle); undo = []; redo = []; syncUndo();
   lctx.clearRect(0, 0, W, H); pctx.clearRect(0, 0, W, H); nctx.clearRect(0, 0, W, H); mask.fill(0);
   $('progress').hidden = true; $('loading').hidden = false;
   buildPalette(); if (!$('flyout').hidden) showFlyout();
@@ -782,7 +815,7 @@ async function loadPage(info){
     if (info.src) img = await loadImg(info.src);
     else { const b = await idb('get', 'lines:' + info.id); if (b) img = await blobImg(b); }
     if (tok !== loadToken) return;
-    if (img) setLinesFrom(img);
+    if (img){ setLinesFrom(img); computeRegions(); lineVer++; }
     const saved = await idb('get', 'paint:' + info.id);
     if (tok !== loadToken) return;
     if (saved){ const im = await blobImg(saved); if (tok === loadToken) pctx.drawImage(im, 0, 0); }
@@ -794,37 +827,20 @@ async function loadPage(info){
 }
 
 /* ---------- colour by number ---------- */
-let labels = null, regions = [];
+let regions = [];
 function setupNumbers(){
-  labels = new Int32Array(W * H).fill(-1); regions = [];
-  // label open areas
-  for (let s = 0; s < W * H; s++){
-    if (mask[s] || labels[s] !== -1) continue;
-    const id = regions.length, stack = [s]; labels[s] = id; let area = 0, sx = 0, sy = 0;
-    while (stack.length){ const i = stack.pop(); area++; const x = i % W, y = (i - x) / W; sx += x; sy += y;
-      if (x > 0 && !mask[i - 1] && labels[i - 1] === -1){ labels[i - 1] = id; stack.push(i - 1); }
-      if (x < W - 1 && !mask[i + 1] && labels[i + 1] === -1){ labels[i + 1] = id; stack.push(i + 1); }
-      if (y > 0 && !mask[i - W] && labels[i - W] === -1){ labels[i - W] = id; stack.push(i - W); }
-      if (y < H - 1 && !mask[i + W] && labels[i + W] === -1){ labels[i + W] = id; stack.push(i + W); } }
-    regions.push({ area, cx: sx / area, cy: sy / area });
-  }
-  // distance to nearest line (two-pass chamfer)
+  regions = RB.map(b => ({ area: b[4], best: 0, px: 0, py: 0, num: 0, done: false }));
   const dist = new Float32Array(W * H);
   for (let i = 0; i < W * H; i++) dist[i] = mask[i] ? 0 : 1e6;
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++){ const i = y * W + x; let v = dist[i]; if (!v) continue;
     if (x > 0) v = Math.min(v, dist[i - 1] + 1); if (y > 0){ v = Math.min(v, dist[i - W] + 1); if (x > 0) v = Math.min(v, dist[i - W - 1] + 1.414); if (x < W - 1) v = Math.min(v, dist[i - W + 1] + 1.414); } dist[i] = v; }
   for (let y = H - 1; y >= 0; y--) for (let x = W - 1; x >= 0; x--){ const i = y * W + x; let v = dist[i]; if (!v) continue;
     if (x < W - 1) v = Math.min(v, dist[i + 1] + 1); if (y < H - 1){ v = Math.min(v, dist[i + W] + 1); if (x < W - 1) v = Math.min(v, dist[i + W + 1] + 1.414); if (x > 0) v = Math.min(v, dist[i + W - 1] + 1.414); } dist[i] = v; }
-  for (const r of regions){ r.best = 0; r.px = 0; r.py = 0; }
-  for (let i = 0; i < W * H; i++){ const l = labels[i]; if (l < 0) continue; const r = regions[l]; if (dist[i] > r.best){ r.best = dist[i]; r.px = i % W; r.py = (i - r.px) / W; } }
-  // background (largest region touching the edge) gets sky blue; others cycle the palette by position
-  let bg = -1, bgA = 0; for (let x = 0; x < W; x += 7){ for (const y of [1, H - 2]){ const l = labels[y * W + x]; if (l >= 0 && regions[l].area > bgA){ bgA = regions[l].area; bg = l; } } }
-  const order = regions.map((r, i) => i).filter(i => regions[i].area > 600 && regions[i].best >= 9).sort((a, b) => (regions[a].py - regions[b].py) || (regions[a].px - regions[b].px));
+  for (let i = 0; i < W * H; i++){ if (mask[i]) continue; const l = lab[i]; if (l < 0) continue; const r = regions[l]; if (dist[i] > r.best){ r.best = dist[i]; r.px = i % W; r.py = (i - r.px) / W; } }
+  let bg = -1, bgA = 0; for (let x = 0; x < W; x += 7){ for (const y of [1, H - 2]){ const l = lab[y * W + x]; if (l >= 0 && regions[l].area > bgA){ bgA = regions[l].area; bg = l; } } }
+  const order = regions.map((r, i) => i).filter(i => i !== bg && regions[i].area > 600 && regions[i].best >= 9).sort((a, b) => (regions[a].py - regions[b].py) || (regions[a].px - regions[b].px));
   let k = 0;
-  regions.forEach(r => { r.num = 0; });
-  for (const i of order){ const r = regions[i];
-    if (i === bg){ r.num = 0; continue; }
-    let n = (k * 3 + Math.floor(r.px / 211)) % 8; if (n === 4) n = (n + 1) % 8; r.num = n + 1; k++; }
+  for (const i of order){ const r = regions[i]; let n = (k * 3 + Math.floor(r.px / 211)) % 8; if (n === 4) n = (n + 1) % 8; r.num = n + 1; k++; }
   recheckAllNumbers();
 }
 function recheckAllNumbers(){
@@ -835,7 +851,7 @@ function recheckAllNumbers(){
   drawNumbers();
 }
 function checkNumbers(x, y){
-  const l = labels ? labels[Math.floor(y) * W + Math.floor(x)] : -1; if (l < 0) return;
+  const l = lab[Math.floor(y) * W + Math.floor(x)]; if (l < 0 || !regions[l]) return;
   const r = regions[l]; if (!r.num) return;
   const was = r.done; r.done = NUM_COLOURS[r.num - 1].toLowerCase() === colour.toLowerCase();
   drawNumbers();
