@@ -157,7 +157,7 @@ input[type=range]{width:70px;accent-color:var(--accent)}
 .ref-body.drop{outline:3px dashed var(--accent);outline-offset:-6px}
 .ref-empty{color:#5B6183;font-size:13.5px;font-weight:700;text-align:center;padding:16px;line-height:1.45;max-width:30ch}
 .ref-size{position:absolute;right:0;bottom:0;width:28px;height:28px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 55%,var(--muted) 55%,var(--muted) 62%,transparent 62%,transparent 72%,var(--muted) 72%,var(--muted) 79%,transparent 79%)}
-#refBtn[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 15%,transparent)}
+#refBtn[aria-pressed="true"],#exBtn[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 15%,transparent)}
 .progress{position:absolute;z-index:4;right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--glass);border:1px solid var(--line);border-radius:14px;padding:8px 12px;font-weight:800;font-size:13px;box-shadow:0 6px 18px var(--shadow)}
 
 /* sheets */
@@ -167,6 +167,8 @@ input[type=range]{width:70px;accent-color:var(--accent)}
 .sheet-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
 .sheet h2{font-family:var(--display);font-weight:800;font-size:24px;margin:0;margin-right:auto}
 .save-img{width:100%;border-radius:10px;display:block;box-shadow:inset 0 0 0 1px var(--line);-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto}
+.save-acts{display:flex;justify-content:center;margin-top:14px}
+.pill.big{min-height:54px;padding:0 24px;font-size:17px;border-radius:16px}
 .hint{color:var(--muted);font-size:14px;margin:12px 2px 0;line-height:1.5;max-width:65ch}
 
 /* kid lock */
@@ -187,9 +189,9 @@ input[type=range]{width:70px;accent-color:var(--accent)}
 .switch-row{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}
 .switch-row b{display:block;font-size:16px}.switch-row span{color:var(--muted);font-size:13.5px;font-weight:600}
 .switch-row .txt{margin-right:auto}
-.sw{position:relative;width:58px;height:34px;border-radius:20px;border:0;background:var(--line);flex:none;transition:background .2s}
-.sw::after{content:"";position:absolute;top:3px;left:3px;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:transform .2s}
-.sw[aria-checked="true"]{background:var(--accent)}.sw[aria-checked="true"]::after{transform:translateX(24px)}
+.lk-sw{position:relative;width:58px;height:34px;border-radius:20px;border:0;background:var(--line);flex:none;transition:background .2s}
+.lk-sw::after{content:"";position:absolute;top:3px;left:3px;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:transform .2s}
+.lk-sw[aria-checked="true"]{background:var(--accent)}.lk-sw[aria-checked="true"]::after{transform:translateX(24px)}
 .lock-tip{margin-top:14px;font-size:14px;line-height:1.5;color:var(--muted)}
 .lock-tip ol{margin:6px 0 0;padding-left:20px}
 .toast{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:30;background:var(--ink);color:var(--bg);padding:11px 16px;border-radius:12px;font-weight:800;font-size:14.5px;max-width:calc(100% - 32px);text-align:center;box-shadow:0 8px 24px var(--shadow)}
@@ -266,6 +268,7 @@ input[type=range]{width:70px;accent-color:var(--accent)}
     <span class="vsep"></span>
     <button class="pill" id="clearBtn" aria-label="Start over"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
     <button class="pill" id="refBtn" aria-label="Show or hide the reference picture" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/></svg></button>
+    <button class="pill" id="exBtn" aria-label="Show or hide the coloured example" aria-pressed="false" hidden><svg class="i" viewBox="0 0 24 24"><path d="M12 3a9 9 0 100 18c1.1 0 1.6-.9 1.2-1.8-.5-1-.1-2.2 1.1-2.2H17a4 4 0 004-4c0-5.5-4-10-9-10z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="14.5" cy="7" r="1.2"/></svg></button>
     <button class="pill" id="fullBtn" aria-label="Full screen"><svg class="i" viewBox="0 0 24 24" id="fullIco"><path d="M3 8V3h5M21 8V3h-5M3 16v5h5M21 16v5h-5"/></svg></button>
     <button class="pill primary" id="saveBtn" aria-label="Save picture"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg></button>
   </div>
@@ -301,14 +304,15 @@ input[type=range]{width:70px;accent-color:var(--accent)}
   <div class="sheet">
     <div class="sheet-head"><h2 id="saveTitle">Your picture</h2><button class="pill" data-close>Close</button></div>
     <img id="saveImg" class="save-img" alt="Your finished colouring page">
-    <p class="hint">Press and hold the picture, then tap <strong>Save to Photos</strong> or <strong>Share</strong>.</p>
+    <div class="save-acts"><button class="pill primary big" id="savePhotos"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>Save to Photos</button></div>
+    <p class="hint" id="saveHint">Tap <strong>Save to Photos</strong>, then choose <strong>Save Image</strong>. You can also press and hold the picture.</p>
   </div>
 </div>
 <div class="overlay" id="lockSheet" hidden role="dialog" aria-modal="true" aria-labelledby="lockTitle">
   <div class="sheet lock-sheet">
     <div class="sheet-head"><h2 id="lockTitle">Kid lock</h2><button class="pill" data-close>Done</button></div>
     <div class="switch-row"><div class="txt"><b>Lock the app</b><span>A grown-up maths question guards photos, links, saving and leaving full screen.</span></div>
-      <button class="sw" id="lockSw" role="switch" aria-checked="false" aria-label="Kid lock"></button></div>
+      <button class="lk-sw" id="lockSw" role="switch" aria-checked="false" aria-label="Kid lock"></button></div>
     <div class="lock-tip"><b>To stop the Home button and app switching too</b>, turn on the iPad's Guided Access:
       <ol><li>Settings → Accessibility → Guided Access → turn it on and set a passcode.</li>
       <li>Open Colour Corner and triple-click the top (or Home) button, then tap Start.</li>
@@ -900,7 +904,8 @@ async function loadPage(info){
     if (tok !== loadToken) return;
     if (img) setLinesFrom(img);
     computeRegions(); lineVer++;
-    if (info.guide) showRef({ src: info.guide, label: 'How to draw' }, true); else restoreRef();
+    exOn = false; numExBlob = null; $('exBtn').hidden = !exampleKind(info); paintEx();
+    if (info.guide){ exOn = true; paintEx(); showRef(exampleRef(info), true); } else restoreRef();
     const saved = await idb('get', 'paint:' + info.id);
     if (tok !== loadToken) return;
     if (saved){ const im = await blobImg(saved); if (tok === loadToken) pctx.drawImage(im, 0, 0); }
@@ -913,8 +918,9 @@ async function loadPage(info){
 
 /* ---------- colour by number ---------- */
 let regions = [];
-function setupNumbers(){
-  regions = RB.map(b => ({ area: b[4], best: 0, px: 0, py: 0, num: 0, done: false }));
+function setupNumbers(){ regions = assignNumbers(); recheckAllNumbers(); }
+function assignNumbers(){
+  const regions = RB.map(b => ({ area: b[4], best: 0, px: 0, py: 0, num: 0, done: false }));
   const dist = new Float32Array(W * H);
   for (let i = 0; i < W * H; i++) dist[i] = mask[i] ? 0 : 1e6;
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++){ const i = y * W + x; let v = dist[i]; if (!v) continue;
@@ -926,7 +932,7 @@ function setupNumbers(){
   const order = regions.map((r, i) => i).filter(i => i !== bg && regions[i].area > 600 && regions[i].best >= 9).sort((a, b) => (regions[a].py - regions[b].py) || (regions[a].px - regions[b].px));
   let k = 0;
   for (const i of order){ const r = regions[i]; let n = (k * 3 + Math.floor(r.px / 211)) % 8; if (n === 4) n = (n + 1) % 8; r.num = n + 1; k++; }
-  recheckAllNumbers();
+  return regions;
 }
 function recheckAllNumbers(){
   if (!regions.length) return;
@@ -1021,9 +1027,49 @@ function showRef(r, open){
 refImg.onerror = () => { refImg.hidden = true; $('refEmpty').hidden = false;
   $('refEmpty').textContent = 'That picture couldn’t be loaded from its link. Save it to Photos, then add it with +.'; };
 async function restoreRef(){ const r = await idb('get', 'ref:last'); if (r) showRef(r, false); else { refImg.hidden = true; $('refEmpty').hidden = false; $('refEmpty').innerHTML = 'Add a photo with <b>+</b>, paste a picture, or drag one in from Safari.'; $('refTitle').textContent = 'Reference'; } }
-function useRef(r){ showRef(r, true); idb('set', 'ref:last', r); }
-$('refBtn').onclick = () => setRefOpen(refwin.hidden);
-$('refClose').onclick = () => setRefOpen(false);
+function useRef(r){ exOn = false; paintEx(); showRef(r, true); idb('set', 'ref:last', r); }
+/* coloured examples: How to Draw guides and built-in pages have a coloured version; Colour by Number builds its own from the answer key */
+let exOn = false, numExBlob = null;
+function exampleKind(info){
+  if (!info) return null;
+  if (info.guide) return 'guide';
+  const m = /^pages\/([a-z]+-\d+)\.png$/.exec(info.src || '');
+  if (!m) return null;
+  return m[1].startsWith('numbers-') ? 'numbers' : 'page';
+}
+function exampleRef(info){
+  const k = exampleKind(info);
+  if (k === 'guide') return { src: info.guide.replace('guides/', 'guides-colour/').replace(/\.png$/, '.jpg'), label: 'How to draw · colour' };
+  if (k === 'page') return { src: info.src.replace('pages/', 'colour/').replace(/\.png$/, '.jpg'), label: 'Coloured example' };
+  if (k === 'numbers' && numExBlob) return { blob: numExBlob, label: 'Coloured example' };
+  return null;
+}
+async function buildNumbersExample(){
+  const regs = assignNumbers(), cols = NUM_COLOURS.map(hex);
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
+  const img = c.createImageData(W, H), d = img.data;
+  for (let i = 0; i < W * H; i++){ const l = lab[i], r = l >= 0 ? regs[l] : null, col = r && r.num ? cols[r.num - 1] : null;
+    d[i * 4] = col ? col[0] : 255; d[i * 4 + 1] = col ? col[1] : 255; d[i * 4 + 2] = col ? col[2] : 255; d[i * 4 + 3] = 255; }
+  c.putImageData(img, 0, 0); c.globalCompositeOperation = 'multiply'; c.drawImage(lines, 0, 0);
+  return new Promise(res => cv.toBlob(res, 'image/jpeg', .86));
+}
+function paintEx(){ $('exBtn').setAttribute('aria-pressed', String(exOn)); }
+$('exBtn').onclick = async () => {
+  if (!current) return;
+  const k = exampleKind(current);
+  if (!k) return;
+  if (exOn){
+    exOn = false; paintEx();
+    if (k === 'guide') showRef({ src: current.guide, label: 'How to draw' }, true);
+    else { setRefOpen(false); restoreRef(); }
+    return;
+  }
+  if (k === 'numbers' && !numExBlob){ const tok = loadToken; const b = await buildNumbersExample(); if (tok !== loadToken) return; numExBlob = b; }
+  const r = exampleRef(current); if (!r) return;
+  exOn = true; paintEx(); showRef(r, true);
+};
+$('refBtn').onclick = () => { if (refwin.hidden) setRefOpen(true); else $('refClose').onclick(); };
+$('refClose').onclick = () => { setRefOpen(false); if (exOn && !(current && current.draw)){ exOn = false; paintEx(); restoreRef(); } };
 $('refAdd').onclick = () => $('refFile').click();
 $('refFile').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) useRef({ blob: f, label: 'My photo' }); });
 $('refLinkBtn').onclick = () => { $('refLink').hidden = !$('refLink').hidden; if (!$('refLink').hidden) $('refUrl').focus(); };
@@ -1098,6 +1144,19 @@ $('saveBtn').onclick = () => {
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
   c.fillStyle = '#fff'; c.fillRect(0, 0, W, H); c.drawImage(paint, 0, 0); c.globalAlpha = current && current.trace ? .22 : 1; c.drawImage(lines, 0, 0); c.globalAlpha = 1;
   $('saveImg').src = cv.toDataURL('image/png'); $('saveSheet').hidden = false;
+  saveFile = null; const name = ((current && current.t) || 'My picture').replace(/[^\w\s-]/g, '').trim() || 'My picture';
+  cv.toBlob(b => { if (b) saveFile = new File([b], name + '.png', { type: 'image/png' }); }, 'image/png');
+};
+let saveFile = null;
+$('savePhotos').onclick = async () => {
+  if (!saveFile){ toast('Getting your picture ready… tap again'); return; }
+  const data = { files: [saveFile], title: saveFile.name };
+  if (navigator.canShare && navigator.canShare(data)){
+    try { await navigator.share(data); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(saveFile); a.download = saveFile.name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast('Saved to your downloads');
 };
 document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => b.closest('.overlay').hidden = true);
 document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.hidden = true; }));
